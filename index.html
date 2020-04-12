@@ -175,8 +175,18 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2020-04-12 19:37:19" itemprop="dateCreated datePublished" datetime="2020-04-12T19:37:19+08:00">2020-04-12</time>
+              <time title="创建时间：2020-04-12 19:37:19 / 修改时间：21:38:41" itemprop="dateCreated datePublished" datetime="2020-04-12T19:37:19+08:00">2020-04-12</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%9D%9E%E5%85%B3%E7%B3%BB%E5%9E%8B%E6%95%B0%E6%8D%AE%E5%BA%93/" itemprop="url" rel="index"><span itemprop="name">非关系型数据库</span></a>
+                </span>
             </span>
 
           
@@ -190,7 +200,123 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          
+          <h4 id="Redis"><a href="#Redis" class="headerlink" title="Redis"></a>Redis</h4><h5 id="MySQL与NoSQL"><a href="#MySQL与NoSQL" class="headerlink" title="MySQL与NoSQL"></a>MySQL与NoSQL</h5><h6 id="MySQL"><a href="#MySQL" class="headerlink" title="MySQL"></a>MySQL</h6><blockquote>
+<p>Mysql</p>
+</blockquote>
+<p>关系型数据库，适用于存储有特定结构的一系列数据，结构化存储。</p>
+<blockquote>
+<p>关系型数据库优点</p>
+</blockquote>
+<ul>
+<li>事务一致性：通过事务处理保持数据的一致性</li>
+<li>复杂查询：支持SQL，可以进行 JOIN 等复杂查询</li>
+<li>容易理解：二维表结构是非常贴近逻辑世界的一个概念，关系模型相对网状、层次等其他模型来说更容易理解</li>
+<li>使用方便：通用的 SQL 语言使得操作关系型数据库非常方便</li>
+<li>易于维护：丰富的完整性(实体完整性、参照完整性和用户定义的完整性)大大减低了数据冗余和数据不一致的概率<blockquote>
+<p>关系型数据库缺点</p>
+</blockquote>
+</li>
+<li>读写性能：在数据量达到一定规模时，由于关系型数据库的系统逻辑非常复杂，为了维护一致性，使得其非常容易发生死锁等的并发问题，所以导致其读写速度下滑非常严重</li>
+<li>表结构更新：表结构可以在被定义之后更新，但是如果有比较大的结构变更的话就会变得比较复杂</li>
+<li>高并发：网站的用户并发性非常高，往往达到每秒上万次读写请求，对于传统关系型数据库来说，硬盘I/O是一个很大的瓶颈</li>
+<li>海量数据：对于关系型数据库来说，在一张包含海量数据的表中查询，效率是非常低的</li>
+</ul>
+<h6 id="NoSQL"><a href="#NoSQL" class="headerlink" title="NoSQL"></a>NoSQL</h6><blockquote>
+<p>NoSQL(<strong><em>not only SQL</em></strong>)</p>
+</blockquote>
+<p>非关系型数据库（NoSQL）是对不同于传统的关系数据库的数据库管理系统的统称<br>非关系型数据库包括：</p>
+<ul>
+<li>KV键值存储(key-value)：memcached、Redis</li>
+<li>面向图关系的数据库：Neo4j、InfoGrid</li>
+<li>面向文档的数据库：MongoDB、CouchDB</li>
+<li>面向列的数据库：Cassandra、HBase</li>
+</ul>
+<blockquote>
+<p>非关系型数据库优点</p>
+</blockquote>
+<ul>
+<li>读写性能：无需经过 SQL 层的解析，读写性能很高。主要例子有Redis，由于其逻辑简单，而且纯内存操作，使得其性能非常出色，单节点每秒可以处理超过10万次读写操作；</li>
+<li>简单的扩展：基于键值对，数据没有耦合性，容易扩展。典型例子是 Cassandra，由于其架构是类似于经典的 P2P，所以能通过轻松地添加新的节点来扩展这个集群；</li>
+<li>存储格式多：支持key-value形式、文档形式、图片形式，而关系型数据库则只支持基础类型；</li>
+<li>低廉的成本：这是大多数分布式数据库共有的特点，因为主要都是开源软件，没有昂贵的License成本；<blockquote>
+<p>非关系型数据库缺点</p>
+</blockquote>
+</li>
+<li>不提供对 SQL 的支持：如果不支持 SQL 这样的工业标准，将会对用户产生一定的学习和应用迁移成本</li>
+<li>支持的特性不够丰富：现有产品所提供的功能都比较有限，大多数 NoSQL 数据库都不支持事务，也不像 MS SQL Server 和 Oracle 那样能提供各种附加功能，比如 BI 和报表等</li>
+<li>现有产品的不够成熟：大多数产品都还处于初创期，和关系型数据库几十年的完善不可同日而语</li>
+</ul>
+<p>总结：<br>先留着吧，后续再填，认识还不够深</p>
+<h5 id="Redis基本操作"><a href="#Redis基本操作" class="headerlink" title="Redis基本操作"></a>Redis基本操作</h5><blockquote>
+<p>连接Redis</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd &#x2F;usr&#x2F;local&#x2F;bin</span><br><span class="line">redis-server redis.config # 后面的是redis配置文件的文件路径及文件名</span><br><span class="line">redis-cli -h 127.0.0.1 -p 6379 # 默认为127.0.0.1，所以可以不用加-h</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>切换数据库</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select 2 # 切换数据库，默认是0</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>查看数据库大小</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DBSIZE</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>清空当前的数据库</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">flushdb</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>清空所有数据库</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">flushall</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>查看key是否存在</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">exists key_name # 查看key_name是否存在</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>查看某个键的过期时间</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ttl key_name # 查看key_name的过期时间</span><br></pre></td></tr></table></figure>
+
+<h5 id="五大数据类型"><a href="#五大数据类型" class="headerlink" title="五大数据类型"></a>五大数据类型</h5><h6 id="String（字符串）"><a href="#String（字符串）" class="headerlink" title="String（字符串）"></a>String（字符串）</h6><p>基本命令：<br>应用场景：</p>
+<h6 id="List（列表）"><a href="#List（列表）" class="headerlink" title="List（列表）"></a>List（列表）</h6><p>基本命令：<br>应用场景：</p>
+<h6 id="Set（集合）"><a href="#Set（集合）" class="headerlink" title="Set（集合）"></a>Set（集合）</h6><p>无序集合<br>基本命令：<br>应用场景：</p>
+<h6 id="Hash（哈希）"><a href="#Hash（哈希）" class="headerlink" title="Hash（哈希）"></a>Hash（哈希）</h6><p>基本命令：<br>应用场景：</p>
+<h6 id="Zset（有序集合）"><a href="#Zset（有序集合）" class="headerlink" title="Zset（有序集合）"></a>Zset（有序集合）</h6><p>基本命令：<br>应用场景：</p>
+<h5 id="三种特殊数据类型"><a href="#三种特殊数据类型" class="headerlink" title="三种特殊数据类型"></a>三种特殊数据类型</h5><h6 id="Geospatial地理位置"><a href="#Geospatial地理位置" class="headerlink" title="Geospatial地理位置"></a>Geospatial地理位置</h6><p>基本命令：<br>应用场景：</p>
+<h6 id="Hyperloglog"><a href="#Hyperloglog" class="headerlink" title="Hyperloglog"></a>Hyperloglog</h6><p>基本命令：<br>应用场景：</p>
+<h6 id="Bitmap"><a href="#Bitmap" class="headerlink" title="Bitmap"></a>Bitmap</h6><p>基本命令：<br>应用场景：</p>
+<h5 id="事务"><a href="#事务" class="headerlink" title="事务"></a>事务</h5><p>Redis事务本质，是一组命令的集合，一个事务的命令会被序列化，在执行过程中按顺序依次执行<br>一次性、顺序性、排他性<br>Redis的事务没有隔离级别的概念，并且不保证原子性（单条命令具有原子性）</p>
+<blockquote>
+<p>基本命令</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">multi # 开启事务</span><br><span class="line"># 输入一系列命令 set、get、rem等</span><br><span class="line">exec # 执行事务</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>为什么Redis的事务不保证原子性？<br>当发生错误时，有可能会直接导致整个事务不运行，但也有可能会执行事务中的某些命令，取决于错误的类型。</p>
+</blockquote>
+<ul>
+<li>编译型异常（代码有问题，命令有错，输入时即报错），事务中的所有命令都不执行</li>
+<li>运行时异常（I/O），如果输入命令时没有报错，待命令执行时才报错，那么其他正常的命令会继续执行</li>
+</ul>
+<h5 id="Redis持久化"><a href="#Redis持久化" class="headerlink" title="Redis持久化"></a>Redis持久化</h5><p>持久化包含两种方式，RDB（Redis DataBase）和AOF（Append Only File）</p>
+<h6 id="RDB"><a href="#RDB" class="headerlink" title="RDB"></a>RDB</h6><p>在指定时间内将内存快照保存下来，替换旧的快照</p>
+<h6 id="AOF"><a href="#AOF" class="headerlink" title="AOF"></a>AOF</h6><p>当达到某个条件后，把一系列命令以追加的方式写入日志文件中</p>
+<h5 id="Redis发布订阅"><a href="#Redis发布订阅" class="headerlink" title="Redis发布订阅"></a>Redis发布订阅</h5><p>包含两个角色，发布者和订阅者，内部机制是当订阅者订阅时，Redis会新建一个key保存该频道，频道的value保存着所有订阅者。发布者发布内容写入频道后，频道通知所有订阅者</p>
+<h5 id="Redis主从复制"><a href="#Redis主从复制" class="headerlink" title="Redis主从复制"></a>Redis主从复制</h5><h6 id="一主二从"><a href="#一主二从" class="headerlink" title="一主二从"></a>一主二从</h6><p>主-从<br>   -从<br>一个主机，两个从机，主机负责处理写操作，而从机只能读。<br>成为从机后，主机会将数据全量复制到从机中，而后会以增量复制的形式复制到从机。<br>主机宕机后，不会自动切换</p>
+<h6 id="层层链路"><a href="#层层链路" class="headerlink" title="层层链路"></a>层层链路</h6><p>主-从-从<br>实际上中间的服务器还是从机，第三个服务器为第二个服务器的从机，第三个服务器还是可以从第二个服务器获取数据。</p>
+<h6 id="哨兵模式"><a href="#哨兵模式" class="headerlink" title="哨兵模式"></a>哨兵模式</h6><p>设置哨兵进程去监控主机和从机状态，当主机宕机后，会根据内部的算法机制推举出新的主机，让从机成为主机，当原来的主机恢复后，此时也只能成为现有主机的从机。<br>在实际场景中，为了防止哨兵进程死掉，会同时运行多个哨兵进程，哨兵进程不仅监视所有的主从机，另外还会互相监控。选举时，以票数多的作为新的主机。</p>
+<h5 id="Redis缓存穿透和雪崩"><a href="#Redis缓存穿透和雪崩" class="headerlink" title="Redis缓存穿透和雪崩"></a>Redis缓存穿透和雪崩</h5><h6 id="缓存穿透"><a href="#缓存穿透" class="headerlink" title="缓存穿透"></a>缓存穿透</h6><p>当用户请求数据时，会先经过缓存，如果此时缓存中没有该数据则会去请求数据库，如果此时请求的量过大，那么数据库可能无法承受这个压力<br>解决方案：</p>
+<ul>
+<li>布隆过滤器</li>
+<li>缓存空对象</li>
+</ul>
+<h6 id="缓存击穿"><a href="#缓存击穿" class="headerlink" title="缓存击穿"></a>缓存击穿</h6><p>当一个热点数据过期时，在key失效的那个瞬间，大量的请求会直接去请求数据库，此时会给数据库带来巨大压力<br>解决方案：</p>
+<ul>
+<li>设置永不过期</li>
+<li>加互斥锁<h6 id="雪崩"><a href="#雪崩" class="headerlink" title="雪崩"></a>雪崩</h6>某个特定时间，key集体过期或者Redis宕机<br>解决方案：</li>
+<li>Redis高可用（异地多活）</li>
+<li>限流降级</li>
+<li>数据预热</li>
+</ul>
+
       
     </div>
 
@@ -874,13 +1000,13 @@
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-count">4</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-count">8</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
