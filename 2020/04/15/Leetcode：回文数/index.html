@@ -20,21 +20,19 @@
     var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Pisces","version":"7.7.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="Mysql索引索引的定义 索引是帮助Mysql高效获取数据的排好序的数据结构  索引的数据结构索引的数据结构可以是二叉树、红黑树、Hash表或者B-Tree但查找效率高的是Hash表和B-Tree，其中Hash表不太好进行范围查找，比较适合于等于的查询 MySQL的索引结构 mysql虽然支持Hash表及B-Tree，但一般还是用B-Tree  其实最终使用的数据结构是B+Tree，因为B-Tre">
+  <meta name="description" content="题目：判断一个整数是否是回文数。回文数是指正序（从左向右）和倒序（从右向左）读都是一样的整数。 示例 1: 输入: 121输出: true示例 2: 输入: -121输出: false解释: 从左向右读, 为 -121 。 从右向左读, 为 121- 。因此它不是一个回文数。示例 3: 输入: 10输出: false解释: 从右向左读, 为 01 。因此它不是一个回文数。进阶: 你能不将整数转为字">
 <meta property="og:type" content="article">
-<meta property="og:title" content="MySQL索引">
-<meta property="og:url" content="http://yoursite.com/2020/04/03/MySQL%E7%B4%A2%E5%BC%95/index.html">
+<meta property="og:title" content="Leetcode：回文数">
+<meta property="og:url" content="http://yoursite.com/2020/04/15/Leetcode%EF%BC%9A%E5%9B%9E%E6%96%87%E6%95%B0/index.html">
 <meta property="og:site_name" content="码上有解">
-<meta property="og:description" content="Mysql索引索引的定义 索引是帮助Mysql高效获取数据的排好序的数据结构  索引的数据结构索引的数据结构可以是二叉树、红黑树、Hash表或者B-Tree但查找效率高的是Hash表和B-Tree，其中Hash表不太好进行范围查找，比较适合于等于的查询 MySQL的索引结构 mysql虽然支持Hash表及B-Tree，但一般还是用B-Tree  其实最终使用的数据结构是B+Tree，因为B-Tre">
-<meta property="og:image" content="http://yoursite.com/2020/04/03/MySQL%E7%B4%A2%E5%BC%95/b+%E6%A0%91.png">
-<meta property="article:published_time" content="2020-04-02T16:03:00.000Z">
-<meta property="article:modified_time" content="2020-04-02T16:17:13.701Z">
+<meta property="og:description" content="题目：判断一个整数是否是回文数。回文数是指正序（从左向右）和倒序（从右向左）读都是一样的整数。 示例 1: 输入: 121输出: true示例 2: 输入: -121输出: false解释: 从左向右读, 为 -121 。 从右向左读, 为 121- 。因此它不是一个回文数。示例 3: 输入: 10输出: false解释: 从右向左读, 为 01 。因此它不是一个回文数。进阶: 你能不将整数转为字">
+<meta property="article:published_time" content="2020-04-15T13:27:19.000Z">
+<meta property="article:modified_time" content="2020-04-15T16:01:20.560Z">
 <meta property="article:author" content="Haiyefeng">
-<meta property="article:tag" content="索引">
+<meta property="article:tag" content="队列">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://yoursite.com/2020/04/03/MySQL%E7%B4%A2%E5%BC%95/b+%E6%A0%91.png">
 
-<link rel="canonical" href="http://yoursite.com/2020/04/03/MySQL%E7%B4%A2%E5%BC%95/">
+<link rel="canonical" href="http://yoursite.com/2020/04/15/Leetcode%EF%BC%9A%E5%9B%9E%E6%96%87%E6%95%B0/">
 
 
 <script id="page-configurations">
@@ -47,7 +45,7 @@
   };
 </script>
 
-  <title>MySQL索引 | 码上有解</title>
+  <title>Leetcode：回文数 | 码上有解</title>
   
 
 
@@ -159,7 +157,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/03/MySQL%E7%B4%A2%E5%BC%95/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/15/Leetcode%EF%BC%9A%E5%9B%9E%E6%96%87%E6%95%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/a.jpg">
@@ -172,7 +170,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          MySQL索引
+          Leetcode：回文数
         </h1>
 
         <div class="post-meta">
@@ -181,17 +179,23 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2020-04-03 00:03:00 / 修改时间：00:17:13" itemprop="dateCreated datePublished" datetime="2020-04-03T00:03:00+08:00">2020-04-03</time>
+              <time title="创建时间：2020-04-15 21:27:19" itemprop="dateCreated datePublished" datetime="2020-04-15T21:27:19+08:00">2020-04-15</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-04-16 00:01:20" itemprop="dateModified" datetime="2020-04-16T00:01:20+08:00">2020-04-16</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                  <a href="/categories/Leetcode/" itemprop="url" rel="index"><span itemprop="name">Leetcode</span></a>
                 </span>
             </span>
 
@@ -206,17 +210,19 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h3 id="Mysql索引"><a href="#Mysql索引" class="headerlink" title="Mysql索引"></a>Mysql索引</h3><h3 id="索引的定义"><a href="#索引的定义" class="headerlink" title="索引的定义"></a>索引的定义</h3><blockquote>
-<p>索引是帮助Mysql高效获取数据的排好序的数据结构</p>
-</blockquote>
-<h3 id="索引的数据结构"><a href="#索引的数据结构" class="headerlink" title="索引的数据结构"></a>索引的数据结构</h3><p>索引的数据结构可以是二叉树、红黑树、Hash表或者B-Tree<br>但查找效率高的是Hash表和B-Tree，其中Hash表不太好进行范围查找，比较适合于等于的查询</p>
-<h3 id="MySQL的索引结构"><a href="#MySQL的索引结构" class="headerlink" title="MySQL的索引结构"></a>MySQL的索引结构</h3><blockquote>
-<p>mysql虽然支持Hash表及B-Tree，但一般还是用B-Tree</p>
-</blockquote>
-<p>其实最终使用的数据结构是B+Tree，因为B-Tree会在每个结点都存储数据，导致每层可以存的数据太少，而mysql每层的数据大小限制为16KB，所以为了让最终可以存储更多的数据，也为了让层数尽可能少，采用了B+Tree，B+Tree和B-Tree不同之处在于只有叶子结点才会存储数据或者说地址，其他结点仅仅保存索引值，且保存的也是下一层索引的中间值。<br><img src="/2020/04/03/MySQL%E7%B4%A2%E5%BC%95/b+%E6%A0%91.png" alt="b+树"><br>Mysql表的默认存储引擎MyISAM采用的是非聚集索引，即数据和索引是分开存储在两个文件的，MYD保存数据，MYI保存索引。叶子结点保存的是地址，再去MYD查找数据。</p>
-<p>而InnodDb是使用聚集索引，保存在ibd文件中，数据和索引保存在一个文件中。叶子结点保存的是索引对应列的所有数据。</p>
-<p>InnoDb的索引也是B+Tree，那么需要一个索引（主键）来创建这棵树，并且为了简化插入，最好是自增主键，这样每个新增的数据可以直接插入到最后面，而不是在中间，中间如果超过最大存储空间（16KB），就必须对树的结构进行调整</p>
-
+        <h5 id="题目："><a href="#题目：" class="headerlink" title="题目："></a>题目：</h5><p>判断一个整数是否是回文数。回文数是指正序（从左向右）和倒序（从右向左）读都是一样的整数。</p>
+<p>示例 1:</p>
+<p>输入: 121<br>输出: true<br>示例 2:</p>
+<p>输入: -121<br>输出: false<br>解释: 从左向右读, 为 -121 。 从右向左读, 为 121- 。因此它不是一个回文数。<br>示例 3:</p>
+<p>输入: 10<br>输出: false<br>解释: 从右向左读, 为 01 。因此它不是一个回文数。<br>进阶:</p>
+<p>你能不将整数转为字符串来解决这个问题吗？</p>
+<p>来源：力扣（LeetCode）<br>链接：<a href="https://leetcode-cn.com/problems/palindrome-number" target="_blank" rel="noopener">https://leetcode-cn.com/problems/palindrome-number</a><br>著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。</p>
+<h5 id="题解："><a href="#题解：" class="headerlink" title="题解："></a>题解：</h5><p>效率似乎都不太高，后续再试试<br><strong>双端队列</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># 转化为字符串的列表，使用双端队列，对比出列元素是否一致，不一致则返回False，直到没有元素或只剩一个元素</span><br><span class="line">class Solution(object):</span><br><span class="line">    def isPalindrome(self, x):</span><br><span class="line">        &quot;&quot;&quot;</span><br><span class="line">        :type x: int</span><br><span class="line">        :rtype: bool</span><br><span class="line">        &quot;&quot;&quot;</span><br><span class="line">        x_list &#x3D; list(str(x))</span><br><span class="line">        while len(x_list) &gt; 1:</span><br><span class="line">            if x_list.pop(0) !&#x3D; x_list.pop():</span><br><span class="line">                return False</span><br><span class="line">        return True</span><br></pre></td></tr></table></figure>
+<p><strong>指针</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># 遍历字符串，对比对应两个位置的字符是否相同，不一致则返回False，直到遍历完成</span><br><span class="line">class Solution1(object):</span><br><span class="line">    def isPalindrome(self, x):</span><br><span class="line">        &quot;&quot;&quot;</span><br><span class="line">        :type x: int</span><br><span class="line">        :rtype: bool</span><br><span class="line">        &quot;&quot;&quot;</span><br><span class="line">        length &#x3D; len(str(x))</span><br><span class="line">        x_str &#x3D; str(x)</span><br><span class="line">        for i in range(0, length&#x2F;&#x2F;2):</span><br><span class="line">            if x_str[i] !&#x3D; x_str[length-1-i]:</span><br><span class="line">                return False</span><br><span class="line">        return True</span><br></pre></td></tr></table></figure>
+<p><strong>整数取余翻转</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">class Solution2:</span><br><span class="line">    def isPalindrome(self, x):</span><br><span class="line">        &quot;&quot;&quot;</span><br><span class="line">        :type x: int</span><br><span class="line">        :rtype: bool</span><br><span class="line">        &quot;&quot;&quot;</span><br><span class="line">        if x &lt; 0 or (x !&#x3D; 0 and x % 10 &#x3D;&#x3D; 0):</span><br><span class="line">            return False</span><br><span class="line">        if x &lt; 10:</span><br><span class="line">            return True</span><br><span class="line">        reverse_x &#x3D; 0</span><br><span class="line">        while x &gt; reverse_x:</span><br><span class="line">            reverse_x &#x3D; (x % 10) + reverse_x * 10</span><br><span class="line">            x &#x3D; x &#x2F;&#x2F; 10</span><br><span class="line">        if reverse_x &#x3D;&#x3D; x or reverse_x &#x2F;&#x2F; 10 &#x3D;&#x3D; x:</span><br><span class="line">            return True</span><br><span class="line">        else:</span><br><span class="line">            return False</span><br></pre></td></tr></table></figure>
     </div>
 
     
@@ -225,7 +231,7 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/%E7%B4%A2%E5%BC%95/" rel="tag"># 索引</a>
+              <a href="/tags/%E9%98%9F%E5%88%97/" rel="tag"># 队列</a>
           </div>
 
         
@@ -234,13 +240,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2020/03/30/%E4%BA%8C%E5%8F%89%E6%A0%91%E7%9A%84%E9%81%8D%E5%8E%86/" rel="prev" title="二叉树的遍历">
-      <i class="fa fa-chevron-left"></i> 二叉树的遍历
+    <a href="/2020/04/14/Leetcode%EF%BC%9A%E4%B8%A4%E6%95%B0%E4%B9%8B%E5%92%8C/" rel="prev" title="Leetcode：两数之和">
+      <i class="fa fa-chevron-left"></i> Leetcode：两数之和
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2020/04/12/redis%E5%9F%BA%E7%A1%80/" rel="next" title="redis基础">
-      redis基础 <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -300,7 +303,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Mysql索引"><span class="nav-number">1.</span> <span class="nav-text">Mysql索引</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#索引的定义"><span class="nav-number">2.</span> <span class="nav-text">索引的定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#索引的数据结构"><span class="nav-number">3.</span> <span class="nav-text">索引的数据结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MySQL的索引结构"><span class="nav-number">4.</span> <span class="nav-text">MySQL的索引结构</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-5"><a class="nav-link" href="#题目："><span class="nav-number">1.</span> <span class="nav-text">题目：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#题解："><span class="nav-number">2.</span> <span class="nav-text">题解：</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
