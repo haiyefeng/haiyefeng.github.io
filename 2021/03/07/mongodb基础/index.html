@@ -20,15 +20,16 @@
     var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Pisces","version":"7.7.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="title: mongodb基础date: 2021-03-07 23:27:28categories:    - 中间件tags:    - mongodb mongodbmongodb简介mongodb体系结构![](mongodb基础&#x2F;20210223113844925_22479.png &#x3D;733x)![](mongodb基础&#x2F;20210223113902496_7876.png &#x3D;826">
+  <meta name="description" content="mongodbmongodb简介mongodb体系结构![](mongodb基础&#x2F;20210223113844925_22479.png &#x3D;733x)![](mongodb基础&#x2F;20210223113902496_7876.png &#x3D;826x) 数据模型MongoDB的最小存储单位就是文档(document)对象。文档(document)对象对应于关系型数据库的行。数据在MongoDB中以BSON">
 <meta property="og:type" content="article">
 <meta property="og:title" content="mongodb基础">
 <meta property="og:url" content="http://yoursite.com/2021/03/07/mongodb%E5%9F%BA%E7%A1%80/index.html">
 <meta property="og:site_name" content="码上有解">
-<meta property="og:description" content="title: mongodb基础date: 2021-03-07 23:27:28categories:    - 中间件tags:    - mongodb mongodbmongodb简介mongodb体系结构![](mongodb基础&#x2F;20210223113844925_22479.png &#x3D;733x)![](mongodb基础&#x2F;20210223113902496_7876.png &#x3D;826">
-<meta property="article:published_time" content="2021-03-07T15:18:18.117Z">
-<meta property="article:modified_time" content="2021-03-07T15:31:56.902Z">
+<meta property="og:description" content="mongodbmongodb简介mongodb体系结构![](mongodb基础&#x2F;20210223113844925_22479.png &#x3D;733x)![](mongodb基础&#x2F;20210223113902496_7876.png &#x3D;826x) 数据模型MongoDB的最小存储单位就是文档(document)对象。文档(document)对象对应于关系型数据库的行。数据在MongoDB中以BSON">
+<meta property="article:published_time" content="2021-03-07T15:27:28.000Z">
+<meta property="article:modified_time" content="2021-03-07T15:37:47.445Z">
 <meta property="article:author" content="Haiyefeng">
+<meta property="article:tag" content="mongodb">
 <meta name="twitter:card" content="summary">
 
 <link rel="canonical" href="http://yoursite.com/2021/03/07/mongodb%E5%9F%BA%E7%A1%80/">
@@ -180,7 +181,16 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2021-03-07 23:18:18 / 修改时间：23:31:56" itemprop="dateCreated datePublished" datetime="2021-03-07T23:18:18+08:00">2021-03-07</time>
+              <time title="创建时间：2021-03-07 23:27:28 / 修改时间：23:37:47" itemprop="dateCreated datePublished" datetime="2021-03-07T23:27:28+08:00">2021-03-07</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/" itemprop="url" rel="index"><span itemprop="name">中间件</span></a>
+                </span>
             </span>
 
           
@@ -194,8 +204,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>title: mongodb基础<br>date: 2021-03-07 23:27:28<br>categories:<br>    - 中间件<br>tags:<br>    - mongodb</p>
-<h1 id="mongodb"><a href="#mongodb" class="headerlink" title="mongodb"></a>mongodb</h1><h2 id="mongodb简介"><a href="#mongodb简介" class="headerlink" title="mongodb简介"></a>mongodb简介</h2><h3 id="mongodb体系结构"><a href="#mongodb体系结构" class="headerlink" title="mongodb体系结构"></a>mongodb体系结构</h3><p>![](mongodb基础/20210223113844925_22479.png =733x)<br>![](mongodb基础/20210223113902496_7876.png =826x)</p>
+        <h1 id="mongodb"><a href="#mongodb" class="headerlink" title="mongodb"></a>mongodb</h1><h2 id="mongodb简介"><a href="#mongodb简介" class="headerlink" title="mongodb简介"></a>mongodb简介</h2><h3 id="mongodb体系结构"><a href="#mongodb体系结构" class="headerlink" title="mongodb体系结构"></a>mongodb体系结构</h3><p>![](mongodb基础/20210223113844925_22479.png =733x)<br>![](mongodb基础/20210223113902496_7876.png =826x)</p>
 <h3 id="数据模型"><a href="#数据模型" class="headerlink" title="数据模型"></a>数据模型</h3><p>MongoDB的最小存储单位就是文档(document)对象。文档(document)对象对应于关系型数据库的行。数据在MongoDB中以<br>BSON（Binary-JSON）文档的格式存储在磁盘上。<br>BSON数据类型参考列表：<br>![](mongodb基础/20210223114012166_24106.png =815x)</p>
 <h3 id="MongoDB的特点"><a href="#MongoDB的特点" class="headerlink" title="MongoDB的特点"></a>MongoDB的特点</h3><p>（1）高性能：<br>MongoDB提供高性能的数据持久性。对嵌入式数据模型的支持减少了数据库系统上的I/O活动。索引支持更快的查询，并且可以包含来自嵌入式文档和数组的键。（文本索引解决搜索的需求、TTL索引解决历史数据自动过期的需求、地理位置索引可用于构建各种 O2O 应用）<br>mmapv1、wiredtiger、mongorocks（rocksdb）、in-memory 等多引擎支持满足各种场景需求。Gridfs解决文件存储的需求。<br>（2）高可用性：<br>MongoDB的复制工具称为副本集（replica set），它可提供自动故障转移和数据冗余。<br>（3）高扩展性：<br>MongoDB提供了水平可扩展性作为其核心功能的一部分。<br>分片将数据分布在一组集群的机器上。（海量数据存储，服务能力水平扩展）<br>从3.4开始，MongoDB支持基于片键创建数据区域。在一个平衡的集群中，MongoDB将一个区域所覆盖的读写只定向到该区域内的那些片。<br>（4）丰富的查询支持：<br>MongoDB支持丰富的查询语言，支持读和写操作(CRUD)，比如数据聚合、文本搜索和地理空间查询等。<br>（5）其他特点：<br>如无模式（动态模式）、灵活的文档模型</p>
 <h3 id="mongodb常用命令"><a href="#mongodb常用命令" class="headerlink" title="mongodb常用命令"></a>mongodb常用命令</h3><h4 id="连接、关闭等相关命令"><a href="#连接、关闭等相关命令" class="headerlink" title="连接、关闭等相关命令"></a>连接、关闭等相关命令</h4><p>关闭服务命令：<br>（1）快速关闭方法（快速，简单，数据可能会出错）<br>目标：通过系统的kill命令直接杀死进程：<br>杀完要检查一下，避免有的没有杀掉</p>
@@ -228,6 +237,9 @@
     
 
       <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/mongodb/" rel="tag"># mongodb</a>
+          </div>
 
         
 
@@ -235,13 +247,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2021/02/22/hello-world/" rel="prev" title="欢迎 来到码上有解">
-      <i class="fa fa-chevron-left"></i> 欢迎 来到码上有解
+    <a href="/2021/03/07/mongodb%E5%AE%89%E5%85%A8/" rel="prev" title="mongodb安全">
+      <i class="fa fa-chevron-left"></i> mongodb安全
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2021/03/07/mongodb%E9%9B%86%E7%BE%A4/" rel="next" title="mongodb集群">
-      mongodb集群 <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -324,13 +333,13 @@
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-count">6</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-count">12</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
