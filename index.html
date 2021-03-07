@@ -152,6 +152,548 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/03/07/mongodb%E5%AE%89%E5%85%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/a.jpg">
+      <meta itemprop="name" content="Haiyefeng">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="码上有解">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/03/07/mongodb%E5%AE%89%E5%85%A8/" class="post-title-link" itemprop="url">mongodb安全</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-03-07 23:18:43 / 修改时间：23:31:59" itemprop="dateCreated datePublished" datetime="2021-03-07T23:18:43+08:00">2021-03-07</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>title: mongodb安全<br>date: 2021-03-07 23:27:28<br>categories:<br>    - 中间件<br>tags:<br>    - mongodb</p>
+<h1 id="安全认证"><a href="#安全认证" class="headerlink" title="安全认证"></a>安全认证</h1><h2 id="MongoDB的用户和角色权限简介"><a href="#MongoDB的用户和角色权限简介" class="headerlink" title="MongoDB的用户和角色权限简介"></a>MongoDB的用户和角色权限简介</h2><p>默认情况下，MongoDB实例启动运行时是没有启用用户访问权限控制的。<br>为了能保障mongodb的安全可以做以下几个步骤：<br>1）使用新的端口，默认的27017端口如果一旦知道了ip就能连接上，不太安全<br>2）设置mongodb的网络环境，最好将mongodb部署到公司服务器内网，这样外网是访问不到的。公司内部访问使用vpn等<br>3）开启安全认证。认证要同时设置服务器之间的内部认证方式，同时要设置客户端连接到集群的账号密码认证方式<br>为了强制开启用户访问控制(用户验证)，则需要在MongoDB实例启动时<strong>使用选项 –auth</strong> 或在指定<strong>启动配置文件中添加选项 auth=true</strong></p>
+<h3 id="启用访问控制"><a href="#启用访问控制" class="headerlink" title="启用访问控制"></a>启用访问控制</h3><p>MongoDB使用的是基于角色的访问控制(Role-Based Access Control,RBAC)来管理用户对实例的访问。通过对用户授予一个或多个角色来控制用户访问数据库资源的权限和数据库操作的权限，在对用户分配角色之前，用户无法访问实例。<br>启用权限的方法：<br>1.在实例启动时添加选项 –auth<br>2.指定启动配置文件中添加选项 auth=true</p>
+<h3 id="角色"><a href="#角色" class="headerlink" title="角色"></a>角色</h3><p>在MongoDB中通过角色对用户授予相应数据库资源的操作权限，每个角色当中的权限可以显式指定，也可以通过继承其他角色的权限，或者两种都存在的权限。</p>
+<h3 id="权限"><a href="#权限" class="headerlink" title="权限"></a>权限</h3><p>权限由指定的数据库资源(resource)以及允许在指定资源上进行的操作(action)组成。</p>
+<ol>
+<li>资源(resource)包括：数据库、集合、部分集合和集群</li>
+<li>操作(action)包括：对资源进行的增、删、改、查(CRUD)操作<br>在角色定义时可以包含一个或多个已存在的角色，新创建的角色会继承包含的角色所有的权限。在同一个数据库中，新创建角色可以继承其他角色的权限，在 admin 数据库中创建的角色可以继承在其它任意数据库中角色的权限。<h4 id="查询命令"><a href="#查询命令" class="headerlink" title="查询命令"></a>查询命令</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 查询所有角色权限(仅用户自定义角色)</span><br><span class="line">&gt; db.runCommand(&#123; rolesInfo: 1 &#125;)</span><br><span class="line">&#x2F;&#x2F; 查询所有角色权限(包含内置角色)</span><br><span class="line">&gt; db.runCommand(&#123; rolesInfo: 1, showBuiltinRoles: true &#125;)</span><br><span class="line">&gt; &#x2F;&#x2F; 查询当前数据库中的某角色的权限</span><br><span class="line">&gt; db.runCommand(&#123; rolesInfo: &quot;&lt;rolename&gt;&quot; &#125;)</span><br><span class="line">&#x2F;&#x2F; 查询其它数据库中指定的角色权限</span><br><span class="line">&gt; db.runCommand(&#123; rolesInfo: &#123; role: &quot;&lt;rolename&gt;&quot;, db: &quot;&lt;database&gt;&quot; &#125; &#125;</span><br><span class="line">&#x2F;&#x2F; 查询多个角色权限</span><br><span class="line">&gt; db.runCommand(</span><br><span class="line">    &#123;</span><br><span class="line">        rolesInfo: [</span><br><span class="line">            &quot;&lt;rolename&gt;&quot;,</span><br><span class="line">            &#123; role: &quot;&lt;rolename&gt;&quot;, db: &quot;&lt;database&gt;&quot; &#125;,</span><br><span class="line">            ...</span><br><span class="line">        ]</span><br><span class="line">    &#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<h4 id="常用的内置角色"><a href="#常用的内置角色" class="headerlink" title="常用的内置角色"></a>常用的内置角色</h4></li>
+</ol>
+<ul>
+<li>数据库用户角色：read、readWrite</li>
+<li>所有数据库用户角色：readAnyDatabase、readWriteAnyDatabase、userAdminAnyDatabase、dbAdminAnyDatabase</li>
+<li>数据库管理角色：dbAdmin、dbOwner、userAdmin</li>
+<li>集群管理角色：clusterAdmin、clusterManager、clusterMonitor、hostManager</li>
+<li>备份恢复角色：backup、restore</li>
+<li>超级用户角色：root</li>
+<li>内部角色：system<h4 id="角色说明"><a href="#角色说明" class="headerlink" title="角色说明"></a>角色说明</h4><table>
+<thead>
+<tr>
+<th>角色</th>
+<th>权限描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>read</td>
+<td>可以读取指定数据库中任何数据</td>
+</tr>
+<tr>
+<td>readWrite</td>
+<td>可以读写指定数据库中任何数据，包括创建、重命名、删除集合</td>
+</tr>
+<tr>
+<td>readAnyDatabase</td>
+<td>可以读取所有数据库中任何数据(除了数据库config和local之外)</td>
+</tr>
+<tr>
+<td>readWriteAnyDatabase</td>
+<td>可以读写所有数据库中任何数据(除了数据库config和local之外)</td>
+</tr>
+<tr>
+<td>userAdminAnyDatabase</td>
+<td>可以在指定数据库创建和修改用户(除了数据库config和local之外)</td>
+</tr>
+<tr>
+<td>dbAdminAnyDatabase</td>
+<td>可以读取任何数据库以及对数据库进行清理、修改、压缩、获取统计信息、执行检查等操作(除了数据库config和local之外)</td>
+</tr>
+<tr>
+<td>dbAdmin</td>
+<td>可以读取指定数据库以及对数据库进行清理、修改、压缩、获取统计信息、执行检查等操作</td>
+</tr>
+<tr>
+<td>userAdmin</td>
+<td>可以在指定数据库创建和修改用户</td>
+</tr>
+<tr>
+<td>clusterAdmin</td>
+<td>可以对整个集群或数据库系统进行管理操作</td>
+</tr>
+<tr>
+<td>backup</td>
+<td>备份MongoDB数据最小的权限</td>
+</tr>
+<tr>
+<td>restore</td>
+<td>从备份文件中还原恢复MongoDB数据(除了system.profile集合)的权限</td>
+</tr>
+<tr>
+<td>root</td>
+<td>超级账号，超级权限</td>
+</tr>
+<tr>
+<td>## 单实例环境</td>
+<td></td>
+</tr>
+<tr>
+<td>目标：对单实例的MongoDB服务开启安全认证，这里的单实例指的是未开启副本集或分片的MongoDB实例</td>
+<td></td>
+</tr>
+<tr>
+<td>### 添加用户和权限</td>
+<td></td>
+</tr>
+<tr>
+<td>1）先按未开启认证的方式启动mongod服务（在操作用户时，启动mongod服务时尽量不要开启授权）</td>
+<td></td>
+</tr>
+<tr>
+<td>2）使用Mongo客户端登录</td>
+<td></td>
+</tr>
+<tr>
+<td><code>C:\Users\fortune&gt;mongo --host 127.0.01 --port 27017 # 配置了环境变量后不需要再输入具体路径</code></td>
+<td></td>
+</tr>
+<tr>
+<td>3）创建两个管理员用户，一个是系统的超级管理员 myroot ，一个是admin库的管理用户myadmin</td>
+<td></td>
+</tr>
+<tr>
+<td><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">&gt; use admin</span><br><span class="line">switched to db admin</span><br><span class="line"># 创建系统超级用户 myroot,设置密码123456，设置角色root</span><br><span class="line">&gt; db.createUser(&#123;user:&quot;myroot&quot;,pwd:&quot;123456&quot;,roles:[&#123;role:&quot;root&quot;,db:&quot;admin&quot;&#125;]&#125;)</span><br><span class="line">Successfully added user: &#123;</span><br><span class="line">        &quot;user&quot; : &quot;myroot&quot;,</span><br><span class="line">        &quot;roles&quot; : [</span><br><span class="line">                &#123;</span><br><span class="line">                        &quot;role&quot; : &quot;root&quot;,</span><br><span class="line">                        &quot;db&quot; : &quot;admin&quot;</span><br><span class="line">                &#125;</span><br><span class="line">        ]</span><br><span class="line">&#125;</span><br><span class="line"># 创建专门用来管理admin库的账号myadmin，只用来作为用户权限的管理</span><br><span class="line">&gt;  db.createUser(&#123;user:&quot;myadmin&quot;,pwd:&quot;123456&quot;,roles:[&#123;role:&quot;userAdminAnyDatabase&quot;,db:&quot;admin&quot;&#125;]&#125;)</span><br><span class="line">Successfully added user: &#123;</span><br><span class="line">        &quot;user&quot; : &quot;myadmin&quot;,</span><br><span class="line">        &quot;roles&quot; : [</span><br><span class="line">                &#123;</span><br><span class="line">                        &quot;role&quot; : &quot;userAdminAnyDatabase&quot;,</span><br><span class="line">                        &quot;db&quot; : &quot;admin&quot;</span><br><span class="line">                &#125;</span><br><span class="line">        ]</span><br><span class="line">&#125;</span><br><span class="line">1）本案例创建了两个用户，分别对应超管和专门用来管理用户的角色，如果对安全要求很高，防止超管泄漏，则不要创建超管用户。</span><br><span class="line">2）和其它数据库（MySQL）一样，权限的管理都差不多一样，也是将用户和权限信息保存到数据库对应的表中。Mongodb存储所有的用户信息在admin 数据库的集合system.users中，保存用户名、密码和数据库信息。</span><br><span class="line">3）如果不指定数据库，则创建的指定的权限的用户在所有的数据库上有效，如 &#123;role:&quot;userAdminAnyDatabase&quot;, db:&quot;&quot;&#125;</span><br></pre></td></tr></table></figure></td>
+<td></td>
+</tr>
+<tr>
+<td>4）认证测试</td>
+<td></td>
+</tr>
+<tr>
+<td><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&gt; db.auth(&quot;myroot&quot;, &quot;234&quot;)</span><br><span class="line">Error: Authentication failed.</span><br><span class="line">0</span><br><span class="line">&gt; db.auth(&quot;myroot&quot;, &quot;123456&quot;)</span><br><span class="line">1</span><br></pre></td></tr></table></figure></td>
+<td></td>
+</tr>
+<tr>
+<td>5）创建普通用户</td>
+<td></td>
+</tr>
+<tr>
+<td>创建普通用户可以在没有开启认证的时候添加，也可以在开启认证之后添加，但开启认证之后，必须使用有操作admin库的用户登录认证后才能操作。底层都是将用户信息保存在了admin数据库的集合system.users中。</td>
+<td></td>
+</tr>
+<tr>
+<td><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"># 创建(切换)将来要操作的数据库articledb</span><br><span class="line">&gt; use articledb</span><br><span class="line">switched to db articledb</span><br><span class="line"># 创建用户，拥有articledb数据库的读写权限readWrite，密码是123456</span><br><span class="line">&gt; db.createUser(&#123;user:&quot;bobo&quot;,pwd:&quot;123456&quot;,roles:[&#123;role:&quot;readWrite&quot;,db:&quot;articledb&quot;&#125;]&#125;)</span><br><span class="line">Successfully added user: &#123;</span><br><span class="line">        &quot;user&quot; : &quot;bobo&quot;,</span><br><span class="line">        &quot;roles&quot; : [</span><br><span class="line">                &#123;</span><br><span class="line">                        &quot;role&quot; : &quot;readWrite&quot;,</span><br><span class="line">                        &quot;db&quot; : &quot;articledb&quot;</span><br><span class="line">                &#125;</span><br><span class="line">        ]</span><br><span class="line">&#125;</span><br><span class="line"># 测试是否可用</span><br><span class="line">&gt; db.auth(&quot;bobo&quot;,&quot;123456&quot;)</span><br><span class="line">1</span><br><span class="line"># 如果开启了认证后，登录的客户端的用户必须使用admin库的角色，如拥有root角色的myadmin用户，再通过myadmin用户去创建其他角色的用户</span><br></pre></td></tr></table></figure></td>
+<td></td>
+</tr>
+<tr>
+<td>### 服务端开启认证和客户端连接登录</td>
+<td></td>
+</tr>
+<tr>
+<td>（1）关闭已经启动的服务</td>
+<td></td>
+</tr>
+<tr>
+<td>1）使用linux命令杀死进程：kill -2 进程id</td>
+<td></td>
+</tr>
+<tr>
+<td>2）在mongo客户端中使用shutdownServer命令来关闭</td>
+<td></td>
+</tr>
+<tr>
+<td><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt; use admin</span><br><span class="line">switched to db admin</span><br><span class="line">&gt; db.shutdownServer()</span><br><span class="line">server should be down...</span><br></pre></td></tr></table></figure></td>
+<td></td>
+</tr>
+<tr>
+<td>需要几个条件：</td>
+<td></td>
+</tr>
+<tr>
+<td>必须是在admin库下执行该关闭服务命令。</td>
+<td></td>
+</tr>
+<tr>
+<td>如果没有开启认证，必须是从localhost登陆的，才能执行关闭服务命令。</td>
+<td></td>
+</tr>
+<tr>
+<td>非localhost的、通过远程登录的，必须有登录且必须登录用户有对admin操作权限才可以。</td>
+<td></td>
+</tr>
+<tr>
+<td>![服务已关闭](mongodb安全/20210307175504040_14204.png =800x)</td>
+<td></td>
+</tr>
+<tr>
+<td>（2）以开启认证的方式启动服务</td>
+<td></td>
+</tr>
+<tr>
+<td>有两种方式开启权限认证启动服务：一种是参数方式，一种是配置文件方式。</td>
+<td></td>
+</tr>
+<tr>
+<td>1）参数方式</td>
+<td></td>
+</tr>
+<tr>
+<td>在启动时指定参数 –auth ，如：</td>
+<td></td>
+</tr>
+<tr>
+<td><code>C:\Users\fortune&gt;mongod -f D:\software\MongoDB\Server\4.4\bin\mongod.cfg --auth</code></td>
+<td></td>
+</tr>
+<tr>
+<td>2）配置文件方式</td>
+<td></td>
+</tr>
+<tr>
+<td>在mongod.conf配置文件中加入：</td>
+<td></td>
+</tr>
+<tr>
+<td><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">security:</span><br><span class="line">#开启授权认证</span><br><span class="line">authorization: enabled</span><br></pre></td></tr></table></figure></td>
+<td></td>
+</tr>
+<tr>
+<td>（3）开启了认证的情况下的客户端登录</td>
+<td></td>
+</tr>
+<tr>
+<td>有两种认证方式，一种是先登录，在mongo shell中认证；一种是登录时直接认证。</td>
+<td></td>
+</tr>
+<tr>
+<td>1）先连接再认证</td>
+<td></td>
+</tr>
+<tr>
+<td><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">C:\Users\fortune&gt;mongo --host 127.0.0.1 --port 27017</span><br><span class="line">MongoDB shell version v4.4.4</span><br><span class="line">connecting to: mongodb:&#x2F;&#x2F;127.0.0.1:27017&#x2F;?compressors&#x3D;disabled&amp;gssapiServiceName&#x3D;mongodb</span><br><span class="line">Implicit session: session &#123; &quot;id&quot; : UUID(&quot;57762763-de3b-4c20-a039-cbdbac46f73e&quot;) &#125;</span><br><span class="line">MongoDB server version: 4.4.4</span><br><span class="line"># 开启认证后再登录，发现打印的日志比较少了，查询发现需要认证</span><br><span class="line">&gt; use articledb</span><br><span class="line">switched to db articledb</span><br><span class="line">&gt; db.comment.find()</span><br><span class="line">Error: error: &#123;</span><br><span class="line">        &quot;ok&quot; : 0,</span><br><span class="line">        &quot;errmsg&quot; : &quot;command find requires authentication&quot;,</span><br><span class="line">        &quot;code&quot; : 13,</span><br><span class="line">        &quot;codeName&quot; : &quot;Unauthorized&quot;</span><br><span class="line">&#125;</span><br><span class="line"># 登录后可查询（注意如果是某个库的账户，则需要切换到相应的库才能登录）</span><br><span class="line">&gt; db.auth(&quot;bobo&quot;,&quot;123456&quot;)</span><br><span class="line">1</span><br><span class="line">&gt; db.comment.find()</span><br><span class="line">&#123; &quot;_id&quot; : ObjectId(&quot;6035f32c84d79aa3b5c668a6&quot;), &quot;articleid&quot; : &quot;100000&quot;, &quot;content&quot; : &quot;今天天气真好，阳光明媚&quot;, &quot;userid&quot; : &quot;1001&quot;, &quot;nickname&quot; : &quot;Rose&quot;, &quot;createdatetime&quot; : ISODate(&quot;2021-02-24T06:33:16.430Z&quot;), &quot;likenum&quot; : 10, &quot;state&quot; : null &#125;</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure></td>
+<td></td>
+</tr>
+<tr>
+<td>2）连接时直接认证</td>
+<td></td>
+</tr>
+<tr>
+<td><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">C:\Users\fortune&gt;mongo --host 127.0.0.1 --port 27017 --authenticationDatabase admin -u myroot -p 123456</span><br><span class="line">MongoDB shell version v4.4.4</span><br><span class="line">connecting to: mongodb:&#x2F;&#x2F;127.0.0.1:27017&#x2F;?authSource&#x3D;admin&amp;compressors&#x3D;disabled&amp;gssapiServiceName&#x3D;mongodb</span><br><span class="line">Implicit session: session &#123; &quot;id&quot; : UUID(&quot;70ce5f1d-1142-4a2e-9aac-76f3894a2b3c&quot;) &#125;</span><br><span class="line">MongoDB server version: 4.4.4</span><br><span class="line">Free Monitoring URL:</span><br><span class="line">https:&#x2F;&#x2F;cloud.mongodb.com&#x2F;freemonitoring&#x2F;cluster&#x2F;D3UMZIVRJRGJPUFODCYILDIKRKCTTV3X</span><br><span class="line">&gt; db.system.users.find()</span><br><span class="line">&gt; use admin</span><br><span class="line">switched to db admin</span><br><span class="line">&gt; db.system.users.find()</span><br><span class="line">&#123; &quot;_id&quot; : &quot;admin.myroot&quot;, &quot;userId&quot; : UUID(&quot;af42bc04-440b-4c98-b698-b8747ef2eb35&quot;), &quot;user&quot; : &quot;myroot&quot;, &quot;db&quot; : &quot;admin&quot;, &quot;credentials&quot; : &#123; &quot;SCRAM-SHA-1&quot; : &#123; &quot;iterationCount&quot; : 10000, &quot;salt&quot; : &quot;PMXRMTfOBzPmiDOW2n7ixQ&#x3D;&#x3D;&quot;, &quot;storedKey&quot; : &quot;U47dQKbHta0N8VwgFa63OAyNkD4&#x3D;&quot;, &quot;serverKey&quot; : &quot;Z3gUl83zPrDEXIsQXa4R4pKmd&#x2F;o&#x3D;&quot; &#125;, &quot;SCRAM-SHA-256&quot; : &#123; &quot;iterationCount&quot; : 15000, &quot;salt&quot; : &quot;2RdbeB73FQ03YvNBv+SHJtEK1LlC9Eh6qUVukg&#x3D;&#x3D;&quot;, &quot;storedKey&quot; : &quot;Vm3L9VlI3VA5oi0JvSz6xPu2aUL72ZFJ4h4v06q1OW4&#x3D;&quot;, &quot;serverKey&quot; : &quot;UthkpRSLcRVR4QdCWoYCR8E6GStmwLCjU3qbsbgCPio&#x3D;&quot; &#125; &#125;, &quot;roles&quot; : [ &#123; &quot;role&quot; : &quot;root&quot;, &quot;db&quot; : &quot;admin&quot; &#125; ] &#125;</span><br><span class="line">&#123; &quot;_id&quot; : &quot;admin.myadmin&quot;, &quot;userId&quot; : UUID(&quot;4b6debce-f09f-40aa-9fa4-50f5e7cddfa7&quot;), &quot;user&quot; : &quot;myadmin&quot;, &quot;db&quot; : &quot;admin&quot;, &quot;credentials&quot; : &#123; &quot;SCRAM-SHA-1&quot; : &#123; &quot;iterationCount&quot; : 10000, &quot;salt&quot; : &quot;QyYlA5p5mdKRXISZTngtGg&#x3D;&#x3D;&quot;, &quot;storedKey&quot; : &quot;3tSb6SBwjLA69jpQPDYqb8DqBB0&#x3D;&quot;, &quot;serverKey&quot; : &quot;Mifh7bR3Se7VzoHzafRs82&#x2F;Uvdc&#x3D;&quot; &#125;, &quot;SCRAM-SHA-256&quot; : &#123; &quot;iterationCount&quot; : 15000, &quot;salt&quot; : &quot;+qAQPxEVcz4vcavB93FX3br0F9MSGXjyaznaOw&#x3D;&#x3D;&quot;, &quot;storedKey&quot; : &quot;m&#x2F;yYCOpEw4bBpOu1fzgsdXKcLx+zKjkl9LmpaLVxh3s&#x3D;&quot;, &quot;serverKey&quot; : &quot;ERS886LGU&#x2F;f93ckkg21hVm3y&#x2F;xTTw86&#x2F;xW3P+jGLTFw&#x3D;&quot; &#125; &#125;, &quot;roles&quot; : [ &#123; &quot;role&quot; : &quot;userAdminAnyDatabase&quot;, &quot;db&quot; : &quot;admin&quot; &#125; ] &#125;</span><br><span class="line">&#123; &quot;_id&quot; : &quot;articledb.bobo&quot;, &quot;userId&quot; : UUID(&quot;66ec03fe-7f8e-4ecd-a6a2-60343a1ae84b&quot;), &quot;user&quot; : &quot;bobo&quot;, &quot;db&quot; : &quot;articledb&quot;, &quot;credentials&quot; : &#123; &quot;SCRAM-SHA-1&quot; : &#123; &quot;iterationCount&quot; : 10000, &quot;salt&quot; : &quot;B9fjNQlbPI332LhJJKretQ&#x3D;&#x3D;&quot;, &quot;storedKey&quot; : &quot;eFR87+A8h8vUtWg5wcQyUVYSPSw&#x3D;&quot;, &quot;serverKey&quot; : &quot;x9Z+pCKzbUNB1MzJ&#x2F;UjjNctbkFE&#x3D;&quot; &#125;, &quot;SCRAM-SHA-256&quot; : &#123; &quot;iterationCount&quot; : 15000, &quot;salt&quot; : &quot;3B1S0jfgwiA+pSZAm354DrsQk3W7tyanZkiSvg&#x3D;&#x3D;&quot;, &quot;storedKey&quot; : &quot;V18hBRnI6J+tbn3eBtmNRdjJuoJ0dUxGuQ0709hoTck&#x3D;&quot;, &quot;serverKey&quot; : &quot;rf971ZTTvTUJXn+46OFsTSDEdU7mJle+uqKnrVeOyaI&#x3D;&quot; &#125; &#125;, &quot;roles&quot; : [ &#123; &quot;role&quot; : &quot;readWrite&quot;, &quot;db&quot; : &quot;articledb&quot; &#125; ] &#125;</span><br></pre></td></tr></table></figure></td>
+<td></td>
+</tr>
+<tr>
+<td>#### 账号相关命令</td>
+<td></td>
+</tr>
+<tr>
+<td>命令</td>
+<td>描述</td>
+</tr>
+<tr>
+<td>————————————————————————————–</td>
+<td>———————————————————————————————————–</td>
+</tr>
+<tr>
+<td>db.system.users.find()</td>
+<td>查看已经创建了的用户的情况</td>
+</tr>
+<tr>
+<td>db.dropUser(“myadmin”)</td>
+<td>删除用户</td>
+</tr>
+<tr>
+<td>db.changeUserPassword(“myroot”, “123456”)</td>
+<td>修改密码</td>
+</tr>
+<tr>
+<td>db.createUser({user:”myroot”,pwd:”123456”,roles:[{role:”root”,db:”admin”}]})</td>
+<td>创建用户</td>
+</tr>
+<tr>
+<td>mongo –host 127.0.0.1 –port 27017 –authenticationDatabase admin -u myroot -p 123456</td>
+<td>-u ：用户名 -p ：密码, –authenticationDatabase ：指定连接到哪个库。当登录是指定用户名密码时，必须指定对应的数据库！</td>
+</tr>
+</tbody></table>
+</li>
+</ul>
+<h2 id="副本集环境"><a href="#副本集环境" class="headerlink" title="副本集环境"></a>副本集环境</h2><p>副本集的认证需要两种，一种是副本集节点之间的安全认证，另外一种是客户端连接到副本集的安全认证。<br>1）副本集和共享集群的各个节点成员之间使用内部身份验证，可以使用密钥文件或x.509证书。密钥文件比较简单，本文使用密钥文件，官方推荐如果是测试环境可以使用密钥文件，但是正式环境，官方推荐x.509证书。原理就是，集群中每一个实例彼此连接的时候都检验彼此使用的证书的内容是否相同。只有证书相同的实例彼此才可以访问<br>2）使用客户端连接到mongodb集群时，开启访问授权。对于集群外部的访问。如通过可视化客户端，或者通过代码连接的时候，需要开启授权<br>在keyfile身份验证中，副本集中的每个mongod实例都使用keyfile的内容作为共享密码，只有具有正确密钥文件的mongod或者mongos实例可以连接到副本集。密钥文件的内容必须在6到1024个字符之间，并且在unix/linux系统中文件所有者必须有对文件至少有读的权限</p>
+<h3 id="关闭已开启的副本集服务"><a href="#关闭已开启的副本集服务" class="headerlink" title="关闭已开启的副本集服务"></a>关闭已开启的副本集服务</h3><p>1）停止集群服务</p>
+<ul>
+<li>快速关闭方法<br>杀进程，依次杀死仲裁者、副本节点、主节点，直到所有成员都离线。建议主节点最后kill，以避免潜在的回滚。杀完要检查一下，避免有的没有杀掉。<br>如果一旦是因为数据损坏，则需要进行如下操作<br>1&gt;删除lock文件<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">rm -f &#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27017&#x2F;data&#x2F;db&#x2F;*.lock \</span><br><span class="line">&#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27018&#x2F;data&#x2F;db&#x2F;*.lock \</span><br><span class="line">&#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27019&#x2F;data&#x2F;db&#x2F;mongod.lock \</span><br></pre></td></tr></table></figure>
+2&gt;依次修复数据<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;usr&#x2F;local&#x2F;mongodb&#x2F;bin&#x2F;mongod --repair --dbpath&#x3D;&#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27017&#x2F;data&#x2F;db</span><br><span class="line">&#x2F;usr&#x2F;local&#x2F;mongodb&#x2F;bin&#x2F;mongod --repair --dbpath&#x3D;&#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27018&#x2F;data&#x2F;db</span><br><span class="line">&#x2F;usr&#x2F;local&#x2F;mongodb&#x2F;bin&#x2F;mongod --repair --dbpath&#x3D;&#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27019&#x2F;data&#x2F;db</span><br></pre></td></tr></table></figure></li>
+<li>标准的关闭方法<br>通过mongo客户端中的shutdownServer命令来依次关闭各个服务，关闭副本集中的服务，建议依次关闭仲裁节点、副本节点、主节点。主要的操作步骤参考如下：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;客户端登录服务，注意，这里通过localhost登录，如果需要远程登录，必须先登录认证才行。</span><br><span class="line">mongo --port 27017</span><br><span class="line">&#x2F;&#x2F;告知副本集说本机要下线</span><br><span class="line">rs.stepDown()</span><br><span class="line">&#x2F;&#x2F;#切换到admin库</span><br><span class="line">use admin</span><br><span class="line">&#x2F;&#x2F;关闭服务</span><br><span class="line">db.shutdownServer()</span><br></pre></td></tr></table></figure>
+2）通过主节点添加一个管理员帐号<br>只需要在主节点上添加用户，副本集会自动同步。操作和单机类似<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">use admin</span><br><span class="line">db.createUser(&#123;user:&quot;myroot&quot;,pwd:&quot;123456&quot;,roles:[&quot;root&quot;]&#125;)</span><br></pre></td></tr></table></figure>
+3）创建副本集认证的key文件（新增的步骤）<br>第一步：生成一个key文件到当前文件夹中。<br>可以使用任何方法生成密钥文件。例如，以下操作使用openssl生成密码文件，然后使用chmod来更改文件权限，仅为文件所有者提供读取权限<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@bobohost ~]# openssl rand -base64 90 -out .&#x2F;mongo.keyfile</span><br><span class="line">[root@bobohost ~]# chmod 400 .&#x2F;mongo.keyfile</span><br><span class="line">[root@bobohost ~]# ll mongo.keyfile</span><br><span class="line">-r--------. 1 root root 122 8月 14 14:23 mongo.keyfile</span><br></pre></td></tr></table></figure>
+所有副本集节点都必须要用同一份keyfile，一般是在一台机器上生成，然后拷贝到其他机器上，且必须有读的权限，否则将来会报错<br>一定要保证密钥文件一致，文件位置随便。但是为了方便查找，建议每台机器都放到一个固定的位置，都放到和配置文件一起的目录中。<br>第二步将该文件分别拷贝到多个目录中<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@bobohost ~]# cp mongo.keyfile &#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27017</span><br><span class="line">[root@bobohost ~]# cp mongo.keyfile &#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27018</span><br><span class="line">[root@bobohost ~]# cp mongo.keyfile &#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27019</span><br></pre></td></tr></table></figure>
+4）修改配置文件指定keyfile<br>分别编辑几个服务的mongod.conf文件，添加相关内容：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">security:</span><br><span class="line">#KeyFile鉴权文件</span><br><span class="line">keyFile: &#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27017&#x2F;mongo.keyfile</span><br><span class="line">#开启认证方式运行</span><br><span class="line">authorization: enabled</span><br></pre></td></tr></table></figure>
+5）重新启动副本集<br>如果副本集是开启状态，则先分别关闭关闭复本集中的每个mongod，从次节点开始。直到副本集的所有成员都离线，包括任何仲裁者。<strong>主节点必须是最后一个成员关闭</strong>以避免潜在的回滚。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#通过进程编号关闭三个节点</span><br><span class="line">kill -2 54410 54361 54257</span><br><span class="line">mongod -f &#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27017&#x2F;mongod.conf</span><br><span class="line">mongod -f &#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27018&#x2F;mongod.conf</span><br><span class="line">mongod -f &#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27019&#x2F;mongod.conf</span><br></pre></td></tr></table></figure>
+<h2 id="分片集群环境"><a href="#分片集群环境" class="headerlink" title="分片集群环境"></a>分片集群环境</h2>与副本集类似，只不过内部安全认证是在分片集群的所有机器上共享证书，所以同一个证书需要分配到所有机器上，其他操作参照副本集。</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/03/07/mongodb%E9%9B%86%E7%BE%A4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/a.jpg">
+      <meta itemprop="name" content="Haiyefeng">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="码上有解">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/03/07/mongodb%E9%9B%86%E7%BE%A4/" class="post-title-link" itemprop="url">mongodb集群</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-03-07 23:18:37 / 修改时间：23:31:55" itemprop="dateCreated datePublished" datetime="2021-03-07T23:18:37+08:00">2021-03-07</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>title: mongodb集群<br>date: 2021-03-07 23:27:28<br>categories:<br>    - 中间件<br>tags:<br>    - mongodb</p>
+<h1 id="mongodb集群"><a href="#mongodb集群" class="headerlink" title="mongodb集群"></a>mongodb集群</h1><h2 id="副本集-Replica-Sets"><a href="#副本集-Replica-Sets" class="headerlink" title="副本集-Replica Sets"></a>副本集-Replica Sets</h2><p>MongoDB中的副本集（Replica Set）是一组维护相同数据集的mongod服务。 副本集可提供冗余和高可用性，是所有生产部署的基础。<br>副本集类似于有自动故障恢复功能的主从集群。通俗的讲就是用多台机器进行同一数据的异步同步，从而使多台机器拥有同一数据的多个副本，并且当主库当掉时在不需要用户干预的情况下自动切换其他备份服务器做主库。而且还可以利用副本服务器做只读服务器，实现读写分离，提高负载。<br>（1）冗余和数据可用性<br>复制提供冗余并提高数据可用性。 通过在不同数据库服务器上提供多个数据副本，复制可提供一定级别的容错功能，以防止丢失单个数据库服务器。<br>在某些情况下，复制可以提供增加的读取性能，因为客户端可以将读取操作发送到不同的服务上， 在不同数据中心维护数据副本可以增加分布式应用程序的数据位置和可用性。<br>（2）MongoDB中的复制<br>副本集是一组维护相同数据集的mongod实例。 副本集包含多个数据承载节点和可选的一个仲裁节点。在承载数据的节点中，一个且仅一个成员被视为主节点，而其他节点被视为次要（从）节点。<br>主节点接收所有写操作。 副本集只能有一个主要能够确认具有{w：“most”}写入关注的写入; 虽然在某些情况下，另一个mongod实例可能暂时认为自己也是主要的。主要记录其操作日志中的数据集的所有更改，即oplog。辅助(副本)节点复制主节点的oplog并将操作应用于其数据集，以使辅助节点的数据集反映主节点的数据集。 如果主要人员不在，则符合条件的中学将举行选举以选出新的主要人员。<br>![副本集的复制](mongodb集群/20210304194325736_10252.png =852x)<br>（3）主从复制和副本集区别<br>主从集群和副本集最大的区别就是副本集没有固定的“主节点”；整个集群会选出一个“主节点”，当其挂掉后，又在剩下的从节点中选中其他节点为“主节点”，副本集总有一个活跃点(主、primary)和一个或多个备份节点(从、secondary)。</p>
+<h3 id="副本集的三个角色"><a href="#副本集的三个角色" class="headerlink" title="副本集的三个角色"></a>副本集的三个角色</h3><p>副本集有两种类型三种角色</p>
+<h4 id="两种类型："><a href="#两种类型：" class="headerlink" title="两种类型："></a>两种类型：</h4><ul>
+<li>主节点（Primary）类型：数据操作的主要连接点，可读写。</li>
+<li>次要（辅助、从）节点（Secondaries）类型：数据冗余备份节点，可以读或选举。<h4 id="三种角色："><a href="#三种角色：" class="headerlink" title="三种角色："></a>三种角色：</h4></li>
+<li>主要成员（Primary）：主要接收所有写操作。就是主节点。</li>
+<li>副本成员（Replicate）：从主节点通过复制操作以维护相同的数据集，即备份数据，不可写操作，但可以读操作（但需要配置）。是默认的一种从节点类型。</li>
+<li>仲裁者（Arbiter）：不保留任何数据的副本，只具有投票选举作用。当然也可以将仲裁服务器维护为副本集的一部分，即副本成员同时也可以是仲裁者。也是一种从节点类型。<br>![角色关系](mongodb集群/20210304194248627_19146.png =752x)<h4 id="仲裁者"><a href="#仲裁者" class="headerlink" title="仲裁者"></a>仲裁者</h4>可以将额外的mongod实例添加到副本集作为仲裁者。<br>仲裁者不维护数据集。 仲裁者的目的是通过响应其他副本集成员的心跳和选举请求来维护副本集中的仲裁。 因为它们不存储数据集，所以仲裁器可以是提供副本集仲裁功能的好方法，其资源成本比具有数据集的全功能副本集成员更便宜。<br>如果您的副本集具有偶数个成员，请添加仲裁者以获得主要选举中的“大多数”投票。 仲裁者不需要专用硬件。<br>仲裁者将永远是仲裁者，而主要人员可能会退出并成为次要人员，而次要人员可能成为选举期间的主要人员。<br>如果你的副本+主节点的个数是偶数，建议加一个仲裁者，形成奇数，容易满足大多数的投票。<br>如果你的副本+主节点的个数是奇数，可以不加仲裁者。<h3 id="副本集的创建"><a href="#副本集的创建" class="headerlink" title="副本集的创建"></a>副本集的创建</h3><h4 id="创建文件目录及配置文件"><a href="#创建文件目录及配置文件" class="headerlink" title="创建文件目录及配置文件"></a>创建文件目录及配置文件</h4>1、新建一个副本集文件夹<br>![副本集](mongodb集群/20210304225548234_14966.png =800x)<br>2、新建三个节点文件夹<br>![节点文件夹](mongodb集群/20210304225705249_31638.png =800x)<br>3、创建三个节点的配置文件<br>主节点：<br>![主节点文件目录](mongodb集群/20210304230352840_10829.png =800x)<br>myrs_27018 – data – db<pre><code>-- log
+-- mongod.conf</code></pre><blockquote>
+<p>mongod.conf</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">systemLog:</span><br><span class="line">#MongoDB发送所有日志输出的目标指定为文件</span><br><span class="line">destination: file</span><br><span class="line">#mongod或mongos应向其发送所有诊断日志记录信息的日志文件的路径</span><br><span class="line">path: &quot;D:\software\MongoDB\Server\4.4\replica_sets\myrs_27018\log\mongod.log&quot;</span><br><span class="line">#当mongos或mongod实例重新启动时，mongos或mongod会将新条目附加到现有日志文件的末尾。</span><br><span class="line">logAppend: true</span><br><span class="line">storage:</span><br><span class="line">#mongod实例存储其数据的目录。storage.dbPath设置仅适用于mongod。</span><br><span class="line">dbPath: &quot;D:\software\MongoDB\Server\4.4\replica_sets\myrs_27018\data\db&quot;</span><br><span class="line">journal:</span><br><span class="line">#启用或禁用持久性日志以确保数据文件保持有效和可恢复。</span><br><span class="line">enabled: true</span><br><span class="line">processManagement:</span><br><span class="line">#启用在后台运行mongos或mongod进程的守护进程模式。</span><br><span class="line">fork: true</span><br><span class="line">#指定用于保存mongos或mongod进程的进程ID的文件位置，其中mongos或mongod将写入其PID</span><br><span class="line">pidFilePath: &quot;D:\software\MongoDB\Server\4.4\replica_sets\myrs_27018\log\mongod.pid&quot;</span><br><span class="line">net:</span><br><span class="line">#服务实例绑定所有IP，有副作用，副本集初始化的时候，节点名字会自动设置为本地域名，而不是ip</span><br><span class="line">#bindIpAll: true</span><br><span class="line">#服务实例绑定的IP</span><br><span class="line">bindIp: localhost</span><br><span class="line">#bindIp</span><br><span class="line">#绑定的端口</span><br><span class="line">port: 27018</span><br><span class="line">replication:</span><br><span class="line">#副本集的名称</span><br><span class="line">replSetName: myrs</span><br></pre></td></tr></table></figure>
+其他两个节点将27018改为27019、27020即可<h4 id="启动节点"><a href="#启动节点" class="headerlink" title="启动节点"></a>启动节点</h4>执行以下命令：<br><code>D:\software\MongoDB\Server\4.4\bin\mongod -f D:\software\MongoDB\Server\4.4\replica_sets\myrs_27019\mongod.conf</code><br>常见报错：<br>1、格式<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Error parsing YAML config file: yaml-cpp: error at line 5, column 16: unknown escape character: s</span><br><span class="line">try &#39;D:\software\MongoDB\Server\4.4\bin\mongod --help&#39; for more information</span><br><span class="line">没遵循yaml文件写法，配置文件需要空四格作为缩进</span><br></pre></td></tr></table></figure>
+2、Unrecognized option: processManagement.fork<br>不能在配置文件加入这些配置<br>![](mongodb集群/20210305002132837_16013.png =800x)<br>启动成功后应创建数据库相关文件<h4 id="初始化配置副本集和主节点"><a href="#初始化配置副本集和主节点" class="headerlink" title="初始化配置副本集和主节点"></a>初始化配置副本集和主节点</h4>1、连接主节点<br><code>D:\software\MongoDB\Server\4.4\bin&gt;mongo --host=127.0.0.1 --port=27018</code><br>2、初始化副本集<br>![初始化副本集命令](mongodb集群/20210305003129281_768.png =800x)<br><code>rs.initiate()</code><br>![副本集初始化](mongodb集群/20210305003431166_16913.png =800x)<br>1）“ok”的值为1，说明创建成功。<br>2）命令行提示符发生变化，变成了一个从节点角色，此时默认不能读写。稍等片刻，回车，变成主节<br>点。<h4 id="查看副本集的配置内容"><a href="#查看副本集的配置内容" class="headerlink" title="查看副本集的配置内容"></a>查看副本集的配置内容</h4>![查看配置](mongodb集群/20210305003544703_21395.png =800x)<br>![配置信息](mongodb集群/20210305004307166_20285.png =800x)<blockquote>
+<p>副本集配置的查看命令，本质是查询的是 system.replset 的表中的数据：db.system.replset.find()</p>
+</blockquote>
+<h4 id="查看副本集状态"><a href="#查看副本集状态" class="headerlink" title="查看副本集状态"></a>查看副本集状态</h4>![查看副本集状态](mongodb集群/20210305004540976_21727.png =800x)<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">        &quot;set&quot; : &quot;myrs&quot;,</span><br><span class="line">        &quot;date&quot; : ISODate(&quot;2021-03-04T16:46:03.973Z&quot;),</span><br><span class="line">        &quot;myState&quot; : 1,</span><br><span class="line">        &quot;term&quot; : NumberLong(1),</span><br><span class="line">        &quot;syncSourceHost&quot; : &quot;&quot;,</span><br><span class="line">        &quot;syncSourceId&quot; : -1,</span><br><span class="line">        &quot;heartbeatIntervalMillis&quot; : NumberLong(2000),</span><br><span class="line">        &quot;majorityVoteCount&quot; : 1,</span><br><span class="line">        &quot;writeMajorityCount&quot; : 1,</span><br><span class="line">        &quot;votingMembersCount&quot; : 1,</span><br><span class="line">        &quot;writableVotingMembersCount&quot; : 1,</span><br><span class="line">        &quot;optimes&quot; : &#123;</span><br><span class="line">                &quot;lastCommittedOpTime&quot; : &#123;</span><br><span class="line">                        &quot;ts&quot; : Timestamp(1614876359, 1),</span><br><span class="line">                        &quot;t&quot; : NumberLong(1)</span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;lastCommittedWallTime&quot; : ISODate(&quot;2021-03-04T16:45:59.614Z&quot;),</span><br><span class="line">                &quot;readConcernMajorityOpTime&quot; : &#123;</span><br><span class="line">                        &quot;ts&quot; : Timestamp(1614876359, 1),</span><br><span class="line">                        &quot;t&quot; : NumberLong(1)</span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;readConcernMajorityWallTime&quot; : ISODate(&quot;2021-03-04T16:45:59.614Z&quot;),</span><br><span class="line">                &quot;appliedOpTime&quot; : &#123;</span><br><span class="line">                        &quot;ts&quot; : Timestamp(1614876359, 1),</span><br><span class="line">                        &quot;t&quot; : NumberLong(1)</span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;durableOpTime&quot; : &#123;</span><br><span class="line">                        &quot;ts&quot; : Timestamp(1614876359, 1),</span><br><span class="line">                        &quot;t&quot; : NumberLong(1)</span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;lastAppliedWallTime&quot; : ISODate(&quot;2021-03-04T16:45:59.614Z&quot;),</span><br><span class="line">                &quot;lastDurableWallTime&quot; : ISODate(&quot;2021-03-04T16:45:59.614Z&quot;)</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;lastStableRecoveryTimestamp&quot; : Timestamp(1614876359, 1),</span><br><span class="line">        &quot;electionCandidateMetrics&quot; : &#123;</span><br><span class="line">                &quot;lastElectionReason&quot; : &quot;electionTimeout&quot;,</span><br><span class="line">                &quot;lastElectionDate&quot; : ISODate(&quot;2021-03-04T16:31:59.529Z&quot;),</span><br><span class="line">                &quot;electionTerm&quot; : NumberLong(1),</span><br><span class="line">                &quot;lastCommittedOpTimeAtElection&quot; : &#123;</span><br><span class="line">                        &quot;ts&quot; : Timestamp(0, 0),</span><br><span class="line">                        &quot;t&quot; : NumberLong(-1)</span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;lastSeenOpTimeAtElection&quot; : &#123;</span><br><span class="line">                        &quot;ts&quot; : Timestamp(1614875519, 1),</span><br><span class="line">                        &quot;t&quot; : NumberLong(-1)</span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;numVotesNeeded&quot; : 1,</span><br><span class="line">                &quot;priorityAtElection&quot; : 1,</span><br><span class="line">                &quot;electionTimeoutMillis&quot; : NumberLong(10000),</span><br><span class="line">                &quot;newTermStartDate&quot; : ISODate(&quot;2021-03-04T16:31:59.542Z&quot;),</span><br><span class="line">                &quot;wMajorityWriteAvailabilityDate&quot; : ISODate(&quot;2021-03-04T16:31:59.559Z&quot;)</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;members&quot; : [</span><br><span class="line">                &#123;</span><br><span class="line">                        &quot;_id&quot; : 0,</span><br><span class="line">                        &quot;name&quot; : &quot;localhost:27018&quot;,</span><br><span class="line">                        &quot;health&quot; : 1,</span><br><span class="line">                        &quot;state&quot; : 1,</span><br><span class="line">                        &quot;stateStr&quot; : &quot;PRIMARY&quot;,</span><br><span class="line">                        &quot;uptime&quot; : 2166,</span><br><span class="line">                        &quot;optime&quot; : &#123;</span><br><span class="line">                                &quot;ts&quot; : Timestamp(1614876359, 1),</span><br><span class="line">                                &quot;t&quot; : NumberLong(1)</span><br><span class="line">                        &#125;,</span><br><span class="line">                        &quot;optimeDate&quot; : ISODate(&quot;2021-03-04T16:45:59Z&quot;),</span><br><span class="line">                        &quot;syncSourceHost&quot; : &quot;&quot;,</span><br><span class="line">                        &quot;syncSourceId&quot; : -1,</span><br><span class="line">                        &quot;infoMessage&quot; : &quot;&quot;,</span><br><span class="line">                        &quot;electionTime&quot; : Timestamp(1614875519, 2),</span><br><span class="line">                        &quot;electionDate&quot; : ISODate(&quot;2021-03-04T16:31:59Z&quot;),</span><br><span class="line">                        &quot;configVersion&quot; : 1,</span><br><span class="line">                        &quot;configTerm&quot; : 1,</span><br><span class="line">                        &quot;self&quot; : true,</span><br><span class="line">                        &quot;lastHeartbeatMessage&quot; : &quot;&quot;</span><br><span class="line">                &#125;</span><br><span class="line">        ],</span><br><span class="line">        &quot;ok&quot; : 1,</span><br><span class="line">        &quot;$clusterTime&quot; : &#123;</span><br><span class="line">                &quot;clusterTime&quot; : Timestamp(1614876359, 1),</span><br><span class="line">                &quot;signature&quot; : &#123;</span><br><span class="line">                        &quot;hash&quot; : BinData(0,&quot;AAAAAAAAAAAAAAAAAAAAAAAAAAA&#x3D;&quot;),</span><br><span class="line">                        &quot;keyId&quot; : NumberLong(0)</span><br><span class="line">                &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;operationTime&quot; : Timestamp(1614876359, 1)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+说明：<br>1） “set” : “myrs” ：副本集的名字<br>2） “myState” : 1：说明状态正常<br>3） “members” ：副本集成员数组，此时只有一个： “name” : “localhost:27018” ，该成员的<br>角色是 “stateStr” : “PRIMARY”, 该节点是健康的： “health” : 1 。<h4 id="添加副本从节点"><a href="#添加副本从节点" class="headerlink" title="添加副本从节点"></a>添加副本从节点</h4>![添加从节点](mongodb集群/20210305004801083_32398.png =800x)<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">myrs:PRIMARY&gt; rs.add(&quot;localhost:27019&quot;)</span><br><span class="line">&#123;</span><br><span class="line">        &quot;ok&quot; : 1,</span><br><span class="line">        &quot;$clusterTime&quot; : &#123;</span><br><span class="line">                &quot;clusterTime&quot; : Timestamp(1614876534, 1),</span><br><span class="line">                &quot;signature&quot; : &#123;</span><br><span class="line">                        &quot;hash&quot; : BinData(0,&quot;AAAAAAAAAAAAAAAAAAAAAAAAAAA&#x3D;&quot;),</span><br><span class="line">                        &quot;keyId&quot; : NumberLong(0)</span><br><span class="line">                &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;operationTime&quot; : Timestamp(1614876534, 1)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+说明：<br>1） “ok” : 1 ：说明添加成功。<br>查看副本集状态<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">        &quot;set&quot; : &quot;myrs&quot;,</span><br><span class="line">        &quot;date&quot; : ISODate(&quot;2021-03-04T16:50:35.854Z&quot;),</span><br><span class="line">        &quot;myState&quot; : 1,</span><br><span class="line">        &quot;term&quot; : NumberLong(1),</span><br><span class="line">        &quot;syncSourceHost&quot; : &quot;&quot;,</span><br><span class="line">        &quot;syncSourceId&quot; : -1,</span><br><span class="line">        &quot;heartbeatIntervalMillis&quot; : NumberLong(2000),</span><br><span class="line">        &quot;majorityVoteCount&quot; : 2,</span><br><span class="line">        &quot;writeMajorityCount&quot; : 2,</span><br><span class="line">        &quot;votingMembersCount&quot; : 2,</span><br><span class="line">        &quot;writableVotingMembersCount&quot; : 2,</span><br><span class="line">        &quot;optimes&quot; : &#123;</span><br><span class="line">                &quot;lastCommittedOpTime&quot; : &#123;</span><br><span class="line">                        &quot;ts&quot; : Timestamp(1614876629, 1),</span><br><span class="line">                        &quot;t&quot; : NumberLong(1)</span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;lastCommittedWallTime&quot; : ISODate(&quot;2021-03-04T16:50:29.634Z&quot;),</span><br><span class="line">                &quot;readConcernMajorityOpTime&quot; : &#123;</span><br><span class="line">                        &quot;ts&quot; : Timestamp(1614876629, 1),</span><br><span class="line">                        &quot;t&quot; : NumberLong(1)</span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;readConcernMajorityWallTime&quot; : ISODate(&quot;2021-03-04T16:50:29.634Z&quot;),</span><br><span class="line">                &quot;appliedOpTime&quot; : &#123;</span><br><span class="line">                        &quot;ts&quot; : Timestamp(1614876629, 1),</span><br><span class="line">                        &quot;t&quot; : NumberLong(1)</span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;durableOpTime&quot; : &#123;</span><br><span class="line">                        &quot;ts&quot; : Timestamp(1614876629, 1),</span><br><span class="line">                        &quot;t&quot; : NumberLong(1)</span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;lastAppliedWallTime&quot; : ISODate(&quot;2021-03-04T16:50:29.634Z&quot;),</span><br><span class="line">                &quot;lastDurableWallTime&quot; : ISODate(&quot;2021-03-04T16:50:29.634Z&quot;)</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;lastStableRecoveryTimestamp&quot; : Timestamp(1614876598, 1),</span><br><span class="line">        &quot;electionCandidateMetrics&quot; : &#123;</span><br><span class="line">                &quot;lastElectionReason&quot; : &quot;electionTimeout&quot;,</span><br><span class="line">                &quot;lastElectionDate&quot; : ISODate(&quot;2021-03-04T16:31:59.529Z&quot;),</span><br><span class="line">                &quot;electionTerm&quot; : NumberLong(1),</span><br><span class="line">                &quot;lastCommittedOpTimeAtElection&quot; : &#123;</span><br><span class="line">                        &quot;ts&quot; : Timestamp(0, 0),</span><br><span class="line">                        &quot;t&quot; : NumberLong(-1)</span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;lastSeenOpTimeAtElection&quot; : &#123;</span><br><span class="line">                        &quot;ts&quot; : Timestamp(1614875519, 1),</span><br><span class="line">                        &quot;t&quot; : NumberLong(-1)</span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;numVotesNeeded&quot; : 1,</span><br><span class="line">                &quot;priorityAtElection&quot; : 1,</span><br><span class="line">                &quot;electionTimeoutMillis&quot; : NumberLong(10000),</span><br><span class="line">                &quot;newTermStartDate&quot; : ISODate(&quot;2021-03-04T16:31:59.542Z&quot;),</span><br><span class="line">                &quot;wMajorityWriteAvailabilityDate&quot; : ISODate(&quot;2021-03-04T16:31:59.559Z&quot;)</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;members&quot; : [</span><br><span class="line">                &#123;</span><br><span class="line">                        &quot;_id&quot; : 0,</span><br><span class="line">                        &quot;name&quot; : &quot;localhost:27018&quot;,</span><br><span class="line">                        &quot;health&quot; : 1,</span><br><span class="line">                        &quot;state&quot; : 1,</span><br><span class="line">                        &quot;stateStr&quot; : &quot;PRIMARY&quot;,</span><br><span class="line">                        &quot;uptime&quot; : 2438,</span><br><span class="line">                        &quot;optime&quot; : &#123;</span><br><span class="line">                                &quot;ts&quot; : Timestamp(1614876629, 1),</span><br><span class="line">                                &quot;t&quot; : NumberLong(1)</span><br><span class="line">                        &#125;,</span><br><span class="line">                        &quot;optimeDate&quot; : ISODate(&quot;2021-03-04T16:50:29Z&quot;),</span><br><span class="line">                        &quot;syncSourceHost&quot; : &quot;&quot;,</span><br><span class="line">                        &quot;syncSourceId&quot; : -1,</span><br><span class="line">                        &quot;infoMessage&quot; : &quot;&quot;,</span><br><span class="line">                        &quot;electionTime&quot; : Timestamp(1614875519, 2),</span><br><span class="line">                        &quot;electionDate&quot; : ISODate(&quot;2021-03-04T16:31:59Z&quot;),</span><br><span class="line">                        &quot;configVersion&quot; : 2,</span><br><span class="line">                        &quot;configTerm&quot; : 1,</span><br><span class="line">                        &quot;self&quot; : true,</span><br><span class="line">                        &quot;lastHeartbeatMessage&quot; : &quot;&quot;</span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line">                        &quot;_id&quot; : 1,</span><br><span class="line">                        &quot;name&quot; : &quot;localhost:27019&quot;,</span><br><span class="line">                        &quot;health&quot; : 1,</span><br><span class="line">                        &quot;state&quot; : 2,</span><br><span class="line">                        &quot;stateStr&quot; : &quot;SECONDARY&quot;,</span><br><span class="line">                        &quot;uptime&quot; : 100,</span><br><span class="line">                        &quot;optime&quot; : &#123;</span><br><span class="line">                                &quot;ts&quot; : Timestamp(1614876629, 1),</span><br><span class="line">                                &quot;t&quot; : NumberLong(1)</span><br><span class="line">                        &#125;,</span><br><span class="line">                        &quot;optimeDurable&quot; : &#123;</span><br><span class="line">                                &quot;ts&quot; : Timestamp(1614876629, 1),</span><br><span class="line">                                &quot;t&quot; : NumberLong(1)</span><br><span class="line">                        &#125;,</span><br><span class="line">                        &quot;optimeDate&quot; : ISODate(&quot;2021-03-04T16:50:29Z&quot;),</span><br><span class="line">                        &quot;optimeDurableDate&quot; : ISODate(&quot;2021-03-04T16:50:29Z&quot;),</span><br><span class="line">                        &quot;lastHeartbeat&quot; : ISODate(&quot;2021-03-04T16:50:34.931Z&quot;),</span><br><span class="line">                        &quot;lastHeartbeatRecv&quot; : ISODate(&quot;2021-03-04T16:50:35.059Z&quot;),</span><br><span class="line">                        &quot;pingMs&quot; : NumberLong(0),</span><br><span class="line">                        &quot;lastHeartbeatMessage&quot; : &quot;&quot;,</span><br><span class="line">                        &quot;syncSourceHost&quot; : &quot;localhost:27018&quot;,</span><br><span class="line">                        &quot;syncSourceId&quot; : 0,</span><br><span class="line">                        &quot;infoMessage&quot; : &quot;&quot;,</span><br><span class="line">                        &quot;configVersion&quot; : 2,</span><br><span class="line">                        &quot;configTerm&quot; : 1</span><br><span class="line">                &#125;</span><br><span class="line">        ],</span><br><span class="line">        &quot;ok&quot; : 1,</span><br><span class="line">        &quot;$clusterTime&quot; : &#123;</span><br><span class="line">                &quot;clusterTime&quot; : Timestamp(1614876629, 1),</span><br><span class="line">                &quot;signature&quot; : &#123;</span><br><span class="line">                        &quot;hash&quot; : BinData(0,&quot;AAAAAAAAAAAAAAAAAAAAAAAAAAA&#x3D;&quot;),</span><br><span class="line">                        &quot;keyId&quot; : NumberLong(0)</span><br><span class="line">                &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;operationTime&quot; : Timestamp(1614876629, 1)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+说明：<br>1） “name” : “localhost:27019” 是第二个节点的名字，其角色是 “stateStr” :”SECONDARY”<h4 id="添加仲裁从节点"><a href="#添加仲裁从节点" class="headerlink" title="添加仲裁从节点"></a>添加仲裁从节点</h4>![添加仲裁节点](mongodb集群/20210305005253591_9329.png =800x)<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">myrs:PRIMARY&gt; rs.addArb(&quot;localhost:27020&quot;)</span><br><span class="line">&#123;</span><br><span class="line">        &quot;ok&quot; : 1,</span><br><span class="line">        &quot;$clusterTime&quot; : &#123;</span><br><span class="line">                &quot;clusterTime&quot; : Timestamp(1614876802, 1),</span><br><span class="line">                &quot;signature&quot; : &#123;</span><br><span class="line">                        &quot;hash&quot; : BinData(0,&quot;AAAAAAAAAAAAAAAAAAAAAAAAAAA&#x3D;&quot;),</span><br><span class="line">                        &quot;keyId&quot; : NumberLong(0)</span><br><span class="line">                &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;operationTime&quot; : Timestamp(1614876802, 1)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+查看副本集状态：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">        &quot;set&quot; : &quot;myrs&quot;,</span><br><span class="line">        &quot;date&quot; : ISODate(&quot;2021-03-04T16:53:46.643Z&quot;),</span><br><span class="line">        &quot;myState&quot; : 1,</span><br><span class="line">        &quot;term&quot; : NumberLong(1),</span><br><span class="line">        &quot;syncSourceHost&quot; : &quot;&quot;,</span><br><span class="line">        &quot;syncSourceId&quot; : -1,</span><br><span class="line">        &quot;heartbeatIntervalMillis&quot; : NumberLong(2000),</span><br><span class="line">        &quot;majorityVoteCount&quot; : 2,</span><br><span class="line">        &quot;writeMajorityCount&quot; : 2,</span><br><span class="line">        &quot;votingMembersCount&quot; : 3,</span><br><span class="line">        &quot;writableVotingMembersCount&quot; : 2,</span><br><span class="line">        &quot;optimes&quot; : &#123;</span><br><span class="line">                &quot;lastCommittedOpTime&quot; : &#123;</span><br><span class="line">                        &quot;ts&quot; : Timestamp(1614876819, 1),</span><br><span class="line">                        &quot;t&quot; : NumberLong(1)</span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;lastCommittedWallTime&quot; : ISODate(&quot;2021-03-04T16:53:39.646Z&quot;),</span><br><span class="line">                &quot;readConcernMajorityOpTime&quot; : &#123;</span><br><span class="line">                        &quot;ts&quot; : Timestamp(1614876819, 1),</span><br><span class="line">                        &quot;t&quot; : NumberLong(1)</span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;readConcernMajorityWallTime&quot; : ISODate(&quot;2021-03-04T16:53:39.646Z&quot;),</span><br><span class="line">                &quot;appliedOpTime&quot; : &#123;</span><br><span class="line">                        &quot;ts&quot; : Timestamp(1614876819, 1),</span><br><span class="line">                        &quot;t&quot; : NumberLong(1)</span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;durableOpTime&quot; : &#123;</span><br><span class="line">                        &quot;ts&quot; : Timestamp(1614876819, 1),</span><br><span class="line">                        &quot;t&quot; : NumberLong(1)</span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;lastAppliedWallTime&quot; : ISODate(&quot;2021-03-04T16:53:39.646Z&quot;),</span><br><span class="line">                &quot;lastDurableWallTime&quot; : ISODate(&quot;2021-03-04T16:53:39.646Z&quot;)</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;lastStableRecoveryTimestamp&quot; : Timestamp(1614876779, 1),</span><br><span class="line">        &quot;electionCandidateMetrics&quot; : &#123;</span><br><span class="line">                &quot;lastElectionReason&quot; : &quot;electionTimeout&quot;,</span><br><span class="line">                &quot;lastElectionDate&quot; : ISODate(&quot;2021-03-04T16:31:59.529Z&quot;),</span><br><span class="line">                &quot;electionTerm&quot; : NumberLong(1),</span><br><span class="line">                &quot;lastCommittedOpTimeAtElection&quot; : &#123;</span><br><span class="line">                        &quot;ts&quot; : Timestamp(0, 0),</span><br><span class="line">                        &quot;t&quot; : NumberLong(-1)</span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;lastSeenOpTimeAtElection&quot; : &#123;</span><br><span class="line">                        &quot;ts&quot; : Timestamp(1614875519, 1),</span><br><span class="line">                        &quot;t&quot; : NumberLong(-1)</span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;numVotesNeeded&quot; : 1,</span><br><span class="line">                &quot;priorityAtElection&quot; : 1,</span><br><span class="line">                &quot;electionTimeoutMillis&quot; : NumberLong(10000),</span><br><span class="line">                &quot;newTermStartDate&quot; : ISODate(&quot;2021-03-04T16:31:59.542Z&quot;),</span><br><span class="line">                &quot;wMajorityWriteAvailabilityDate&quot; : ISODate(&quot;2021-03-04T16:31:59.559Z&quot;)</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;members&quot; : [</span><br><span class="line">                &#123;</span><br><span class="line">                        &quot;_id&quot; : 0,</span><br><span class="line">                        &quot;name&quot; : &quot;localhost:27018&quot;,</span><br><span class="line">                        &quot;health&quot; : 1,</span><br><span class="line">                        &quot;state&quot; : 1,</span><br><span class="line">                        &quot;stateStr&quot; : &quot;PRIMARY&quot;,</span><br><span class="line">                        &quot;uptime&quot; : 2629,</span><br><span class="line">                        &quot;optime&quot; : &#123;</span><br><span class="line">                                &quot;ts&quot; : Timestamp(1614876819, 1),</span><br><span class="line">                                &quot;t&quot; : NumberLong(1)</span><br><span class="line">                        &#125;,</span><br><span class="line">                        &quot;optimeDate&quot; : ISODate(&quot;2021-03-04T16:53:39Z&quot;),</span><br><span class="line">                        &quot;syncSourceHost&quot; : &quot;&quot;,</span><br><span class="line">                        &quot;syncSourceId&quot; : -1,</span><br><span class="line">                        &quot;infoMessage&quot; : &quot;&quot;,</span><br><span class="line">                        &quot;electionTime&quot; : Timestamp(1614875519, 2),</span><br><span class="line">                        &quot;electionDate&quot; : ISODate(&quot;2021-03-04T16:31:59Z&quot;),</span><br><span class="line">                        &quot;configVersion&quot; : 3,</span><br><span class="line">                        &quot;configTerm&quot; : 1,</span><br><span class="line">                        &quot;self&quot; : true,</span><br><span class="line">                        &quot;lastHeartbeatMessage&quot; : &quot;&quot;</span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line">                        &quot;_id&quot; : 1,</span><br><span class="line">                        &quot;name&quot; : &quot;localhost:27019&quot;,</span><br><span class="line">                        &quot;health&quot; : 1,</span><br><span class="line">                        &quot;state&quot; : 2,</span><br><span class="line">                        &quot;stateStr&quot; : &quot;SECONDARY&quot;,</span><br><span class="line">                        &quot;uptime&quot; : 291,</span><br><span class="line">                        &quot;optime&quot; : &#123;</span><br><span class="line">                                &quot;ts&quot; : Timestamp(1614876819, 1),</span><br><span class="line">                                &quot;t&quot; : NumberLong(1)</span><br><span class="line">                        &#125;,</span><br><span class="line">                        &quot;optimeDurable&quot; : &#123;</span><br><span class="line">                                &quot;ts&quot; : Timestamp(1614876819, 1),</span><br><span class="line">                                &quot;t&quot; : NumberLong(1)</span><br><span class="line">                        &#125;,</span><br><span class="line">                        &quot;optimeDate&quot; : ISODate(&quot;2021-03-04T16:53:39Z&quot;),</span><br><span class="line">                        &quot;optimeDurableDate&quot; : ISODate(&quot;2021-03-04T16:53:39Z&quot;),</span><br><span class="line">                        &quot;lastHeartbeat&quot; : ISODate(&quot;2021-03-04T16:53:46.271Z&quot;),</span><br><span class="line">                        &quot;lastHeartbeatRecv&quot; : ISODate(&quot;2021-03-04T16:53:46.293Z&quot;),</span><br><span class="line">                        &quot;pingMs&quot; : NumberLong(0),</span><br><span class="line">                        &quot;lastHeartbeatMessage&quot; : &quot;&quot;,</span><br><span class="line">                        &quot;syncSourceHost&quot; : &quot;localhost:27018&quot;,</span><br><span class="line">                        &quot;syncSourceId&quot; : 0,</span><br><span class="line">                        &quot;infoMessage&quot; : &quot;&quot;,</span><br><span class="line">                        &quot;configVersion&quot; : 3,</span><br><span class="line">                        &quot;configTerm&quot; : 1</span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line">                        &quot;_id&quot; : 2,</span><br><span class="line">                        &quot;name&quot; : &quot;localhost:27020&quot;,</span><br><span class="line">                        &quot;health&quot; : 1,</span><br><span class="line">                        &quot;state&quot; : 7,</span><br><span class="line">                        &quot;stateStr&quot; : &quot;ARBITER&quot;,</span><br><span class="line">                        &quot;uptime&quot; : 24,</span><br><span class="line">                        &quot;lastHeartbeat&quot; : ISODate(&quot;2021-03-04T16:53:46.264Z&quot;),</span><br><span class="line">                        &quot;lastHeartbeatRecv&quot; : ISODate(&quot;2021-03-04T16:53:46.307Z&quot;),</span><br><span class="line">                        &quot;pingMs&quot; : NumberLong(0),</span><br><span class="line">                        &quot;lastHeartbeatMessage&quot; : &quot;&quot;,</span><br><span class="line">                        &quot;syncSourceHost&quot; : &quot;&quot;,</span><br><span class="line">                        &quot;syncSourceId&quot; : -1,</span><br><span class="line">                        &quot;infoMessage&quot; : &quot;&quot;,</span><br><span class="line">                        &quot;configVersion&quot; : 3,</span><br><span class="line">                        &quot;configTerm&quot; : 1</span><br><span class="line">                &#125;</span><br><span class="line">        ],</span><br><span class="line">        &quot;ok&quot; : 1,</span><br><span class="line">        &quot;$clusterTime&quot; : &#123;</span><br><span class="line">                &quot;clusterTime&quot; : Timestamp(1614876819, 1),</span><br><span class="line">                &quot;signature&quot; : &#123;</span><br><span class="line">                        &quot;hash&quot; : BinData(0,&quot;AAAAAAAAAAAAAAAAAAAAAAAAAAA&#x3D;&quot;),</span><br><span class="line">                        &quot;keyId&quot; : NumberLong(0)</span><br><span class="line">                &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;operationTime&quot; : Timestamp(1614876819, 1)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+说明：<br>1） “name” : “localhost:27020” 是第二个节点的名字，其角色是 “stateStr” : “ARBITER”<h4 id="副本集的数据读写操作"><a href="#副本集的数据读写操作" class="headerlink" title="副本集的数据读写操作"></a>副本集的数据读写操作</h4>目标：测试三个不同角色的节点的数据读写情况。<br>1、主节点的读和写<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">myrs:PRIMARY&gt; use articledb</span><br><span class="line">switched to db articledb</span><br><span class="line">myrs:PRIMARY&gt; db</span><br><span class="line">articledb</span><br><span class="line">myrs:PRIMARY&gt; db.comment.insert(&#123;&quot;articleid&quot;:&quot;100000&quot;,&quot;content&quot;:&quot;今天天气真好，阳光明媚&quot;,&quot;userid&quot;:&quot;1001&quot;,&quot;nickname&quot;:&quot;Rose&quot;,&quot;createdatetime&quot;:new Date()&#125;)</span><br><span class="line">WriteResult(&#123; &quot;nInserted&quot; : 1 &#125;)</span><br><span class="line">myrs:PRIMARY&gt; db.comment.find()</span><br><span class="line">&#123; &quot;_id&quot; : ObjectId(&quot;6041130aaa5b546e2eba2dfd&quot;), &quot;articleid&quot; : &quot;100000&quot;, &quot;content&quot; : &quot;今天天气真好，阳光明媚&quot;, &quot;userid&quot; : &quot;1001&quot;, &quot;nickname&quot; : &quot;Rose&quot;, &quot;createdatetime&quot; : ISODate(&quot;2021-03-04T17:04:10.913Z&quot;) &#125;</span><br></pre></td></tr></table></figure>
+2、从节点的读和写<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"># 登录从节点</span><br><span class="line">mongo --host&#x3D;127.0.0.1 --port&#x3D;27019</span><br><span class="line"># 查看数据库</span><br><span class="line">myrs:SECONDARY&gt; show dbs;</span><br><span class="line">uncaught exception: Error: listDatabases failed:&#123;</span><br><span class="line">        &quot;topologyVersion&quot; : &#123;</span><br><span class="line">                &quot;processId&quot; : ObjectId(&quot;6041058376f8cdece45c5d17&quot;),</span><br><span class="line">                &quot;counter&quot; : NumberLong(4)</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;operationTime&quot; : Timestamp(1614877588, 1),</span><br><span class="line">        &quot;ok&quot; : 0,</span><br><span class="line">        &quot;errmsg&quot; : &quot;not master and slaveOk&#x3D;false&quot;,</span><br><span class="line">        &quot;code&quot; : 13435,</span><br><span class="line">        &quot;codeName&quot; : &quot;NotPrimaryNoSecondaryOk&quot;,</span><br><span class="line">        &quot;$clusterTime&quot; : &#123;</span><br><span class="line">                &quot;clusterTime&quot; : Timestamp(1614877588, 1),</span><br><span class="line">                &quot;signature&quot; : &#123;</span><br><span class="line">                        &quot;hash&quot; : BinData(0,&quot;AAAAAAAAAAAAAAAAAAAAAAAAAAA&#x3D;&quot;),</span><br><span class="line">                        &quot;keyId&quot; : NumberLong(0)</span><br><span class="line">                &#125;</span><br><span class="line">        &#125;</span><br><span class="line">&#125; :</span><br><span class="line">_getErrorWithCode@src&#x2F;mongo&#x2F;shell&#x2F;utils.js:25:13</span><br><span class="line">Mongo.prototype.getDBs&#x2F;&lt;@src&#x2F;mongo&#x2F;shell&#x2F;mongo.js:147:19</span><br><span class="line">Mongo.prototype.getDBs@src&#x2F;mongo&#x2F;shell&#x2F;mongo.js:99:12</span><br><span class="line">shellHelper.show@src&#x2F;mongo&#x2F;shell&#x2F;utils.js:937:13</span><br><span class="line">shellHelper@src&#x2F;mongo&#x2F;shell&#x2F;utils.js:819:15</span><br><span class="line">@(shellhelp2):1:1</span><br></pre></td></tr></table></figure>
+发现，不能读取集合的数据。当前从节点只是一个备份，不是奴隶节点，无法读取数据，写当然更不行。因为默认情况下，从节点是没有读写权限的，可以增加读的权限，但需要进行设置。<blockquote>
+<p>设置读操作权限：说明：设置为奴隶节点，允许在从成员上运行读的操作<br>命令： rs.secondaryOk()</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">myrs:SECONDARY&gt; rs.secondaryOk()</span><br><span class="line">myrs:SECONDARY&gt; show dbs;</span><br><span class="line">admin      0.000GB</span><br><span class="line">articledb  0.000GB</span><br><span class="line">config     0.000GB</span><br><span class="line">local      0.000GB</span><br><span class="line">myrs:SECONDARY&gt; use articledb</span><br><span class="line">switched to db articledb</span><br><span class="line">myrs:SECONDARY&gt; show collections</span><br><span class="line">comment</span><br><span class="line">myrs:SECONDARY&gt; db.comment.find()</span><br><span class="line">&#123; &quot;_id&quot; : ObjectId(&quot;6041130aaa5b546e2eba2dfd&quot;), &quot;articleid&quot; : &quot;100000&quot;, &quot;content&quot; : &quot;今天天气真好，阳光明媚&quot;, &quot;userid&quot; : &quot;1001&quot;, &quot;nickname&quot; : &quot;Rose&quot;, &quot;createdatetime&quot; : ISODate(&quot;2021-03-04T17:04:10.913Z&quot;) &#125;</span><br><span class="line">myrs:SECONDARY&gt; db.comment.insert(&#123;&quot;_id&quot;:&quot;1&quot;,&quot;articleid&quot;:&quot;100001&quot;,&quot;content&quot;:&quot;我们不应该把清晨浪费在手机上，健康很重要，k一杯温水幸福你我他。&quot;,&quot;userid&quot;:&quot;1002&quot;,&quot;nickname&quot;:&quot;相忘于 江湖&quot;,&quot;createdatetime&quot;:new Date(&quot;2019-08-05T22:08:15.522Z&quot;),&quot;likenum&quot;:NumberInt(1000),&quot;state&quot;:&quot;1&quot;&#125;)</span><br><span class="line">WriteCommandError(&#123;</span><br><span class="line">        &quot;topologyVersion&quot; : &#123;</span><br><span class="line">                &quot;processId&quot; : ObjectId(&quot;6041058376f8cdece45c5d17&quot;),</span><br><span class="line">                &quot;counter&quot; : NumberLong(4)</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;operationTime&quot; : Timestamp(1614877939, 1),</span><br><span class="line">        &quot;ok&quot; : 0,</span><br><span class="line">        &quot;errmsg&quot; : &quot;not master&quot;,</span><br><span class="line">        &quot;code&quot; : 10107,</span><br><span class="line">        &quot;codeName&quot; : &quot;NotWritablePrimary&quot;,</span><br><span class="line">        &quot;$clusterTime&quot; : &#123;</span><br><span class="line">                &quot;clusterTime&quot; : Timestamp(1614877939, 1),</span><br><span class="line">                &quot;signature&quot; : &#123;</span><br><span class="line">                        &quot;hash&quot; : BinData(0,&quot;AAAAAAAAAAAAAAAAAAAAAAAAAAA&#x3D;&quot;),</span><br><span class="line">                        &quot;keyId&quot; : NumberLong(0)</span><br><span class="line">                &#125;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+现在可实现了读写分离，让主插入数据，让从来读取数据。<br>如果要取消作为奴隶节点的读权限：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">myrs:SECONDARY&gt; rs.secondaryOk(false)</span><br><span class="line">myrs:SECONDARY&gt; db.comment.find() </span><br><span class="line">Error: error: &#123;</span><br><span class="line">        &quot;topologyVersion&quot; : &#123;</span><br><span class="line">                &quot;processId&quot; : ObjectId(&quot;6041058376f8cdece45c5d17&quot;),</span><br><span class="line">                &quot;counter&quot; : NumberLong(4)</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;operationTime&quot; : Timestamp(1614877999, 1),</span><br><span class="line">        &quot;ok&quot; : 0,</span><br><span class="line">        &quot;errmsg&quot; : &quot;not master and slaveOk&#x3D;false&quot;,</span><br><span class="line">        &quot;code&quot; : 13435,</span><br><span class="line">        &quot;codeName&quot; : &quot;NotPrimaryNoSecondaryOk&quot;,</span><br><span class="line">        &quot;$clusterTime&quot; : &#123;</span><br><span class="line">                &quot;clusterTime&quot; : Timestamp(1614877999, 1),</span><br><span class="line">                &quot;signature&quot; : &#123;</span><br><span class="line">                        &quot;hash&quot; : BinData(0,&quot;AAAAAAAAAAAAAAAAAAAAAAAAAAA&#x3D;&quot;),</span><br><span class="line">                        &quot;keyId&quot; : NumberLong(0)</span><br><span class="line">                &#125;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+3、仲裁者节点，不存放任何业务数据的，可以登录查看<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">myrs:ARBITER&gt; rs.secondaryOk()</span><br><span class="line">myrs:ARBITER&gt; show dbs</span><br><span class="line">uncaught exception: Error: listDatabases failed:&#123;</span><br><span class="line">        &quot;topologyVersion&quot; : &#123;</span><br><span class="line">                &quot;processId&quot; : ObjectId(&quot;6041064174487a9d81c3f122&quot;),</span><br><span class="line">                &quot;counter&quot; : NumberLong(1)</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;ok&quot; : 0,</span><br><span class="line">        &quot;errmsg&quot; : &quot;node is not in primary or recovering state&quot;,</span><br><span class="line">        &quot;code&quot; : 13436,</span><br><span class="line">        &quot;codeName&quot; : &quot;NotPrimaryOrSecondary&quot;</span><br><span class="line">&#125; :</span><br><span class="line">_getErrorWithCode@src&#x2F;mongo&#x2F;shell&#x2F;utils.js:25:13</span><br><span class="line">Mongo.prototype.getDBs&#x2F;&lt;@src&#x2F;mongo&#x2F;shell&#x2F;mongo.js:147:19</span><br><span class="line">Mongo.prototype.getDBs@src&#x2F;mongo&#x2F;shell&#x2F;mongo.js:99:12</span><br><span class="line">shellHelper.show@src&#x2F;mongo&#x2F;shell&#x2F;utils.js:937:13</span><br><span class="line">shellHelper@src&#x2F;mongo&#x2F;shell&#x2F;utils.js:819:15</span><br><span class="line">@(shellhelp2):1:1</span><br><span class="line">myrs:ARBITER&gt; use local</span><br><span class="line">switched to db local</span><br><span class="line">myrs:ARBITER&gt; show collections</span><br><span class="line">replset.election</span><br><span class="line">replset.minvalid</span><br><span class="line">replset.oplogTruncateAfterPoint</span><br><span class="line">startup_log</span><br><span class="line">system.replset</span><br><span class="line">system.rollback.id</span><br></pre></td></tr></table></figure>
+仲裁者节点不能读取数据库，只存放了副本集配置等数据<h3 id="主节点的选举原则"><a href="#主节点的选举原则" class="headerlink" title="主节点的选举原则"></a>主节点的选举原则</h3><h4 id="主节点选举的触发条件"><a href="#主节点选举的触发条件" class="headerlink" title="主节点选举的触发条件"></a>主节点选举的触发条件</h4>MongoDB在副本集中，会自动进行主节点的选举，主节点选举的触发条件：<br>1） 主节点故障<br>2） 主节点网络不可达（默认心跳信息为10秒）<br>3） 人工干预（rs.stepDown(600)）<h4 id="选举规则"><a href="#选举规则" class="headerlink" title="选举规则"></a>选举规则</h4>选举规则是根据<strong>票数</strong>来决定谁获胜：<br>1）票数最高，且获得了<strong>“大多数”</strong>成员的投票支持的节点获胜。“大多数”的定义为：假设复制集内投票成员数量为N，则大多数为 N/2 + 1。例如：3个投票成员，则大多数的值是2。当复制集内存活成员数量不足大多数时，整个复制集将无法选举出Primary，复制集将无法提供写服务，处于只读状态。<br>2）若票数相同，且都获得了“大多数”成员的投票支持的，数据新的节点获胜。数据的新旧是通过操作日志oplog来对比的。<br>3）在获得票数的时候，优先级（priority）参数影响重大。<br>可以通过设置优先级（priority）来设置额外票数。优先级即权重，取值为0-1000，相当于可额外增加0-1000的票数，优先级的值越大，就越可能获得多数成员的投票（votes）数。指定较高的值可使成员更有资格成为主要成员，更低的值可使成员更不符合条件。主节点和副本节点的优先级各为1，即，默认可以认为都已经有了一票。<strong>选举节点的优先级必须是0</strong>，不能是别的值。即不具备选举权，但具有投票权。<h4 id="修改优先级"><a href="#修改优先级" class="headerlink" title="修改优先级"></a>修改优先级</h4></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br></pre></td><td class="code"><pre><span class="line"># 先将配置导入cfg变量</span><br><span class="line">myrs:PRIMARY&gt; cfg&#x3D;rs.conf()</span><br><span class="line">&#123;</span><br><span class="line">        &quot;_id&quot; : &quot;myrs&quot;,</span><br><span class="line">        &quot;version&quot; : 3,</span><br><span class="line">        &quot;term&quot; : 1,</span><br><span class="line">        &quot;protocolVersion&quot; : NumberLong(1),</span><br><span class="line">        &quot;writeConcernMajorityJournalDefault&quot; : true,</span><br><span class="line">        &quot;members&quot; : [</span><br><span class="line">                &#123;</span><br><span class="line">                        &quot;_id&quot; : 0,</span><br><span class="line">                        &quot;host&quot; : &quot;localhost:27018&quot;,</span><br><span class="line">                        &quot;arbiterOnly&quot; : false,</span><br><span class="line">                        &quot;buildIndexes&quot; : true,</span><br><span class="line">                        &quot;hidden&quot; : false,</span><br><span class="line">                        &quot;priority&quot; : 1,</span><br><span class="line">                        &quot;tags&quot; : &#123;</span><br><span class="line"></span><br><span class="line">                        &#125;,</span><br><span class="line">                        &quot;slaveDelay&quot; : NumberLong(0),</span><br><span class="line">                        &quot;votes&quot; : 1</span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line">                        &quot;_id&quot; : 1,</span><br><span class="line">                        &quot;host&quot; : &quot;localhost:27019&quot;,</span><br><span class="line">                        &quot;arbiterOnly&quot; : false,</span><br><span class="line">                        &quot;buildIndexes&quot; : true,</span><br><span class="line">                        &quot;hidden&quot; : false,</span><br><span class="line">                        &quot;priority&quot; : 1,</span><br><span class="line">                        &quot;tags&quot; : &#123;</span><br><span class="line"></span><br><span class="line">                        &#125;,</span><br><span class="line">                        &quot;slaveDelay&quot; : NumberLong(0),</span><br><span class="line">                        &quot;votes&quot; : 1</span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line">                        &quot;_id&quot; : 2,</span><br><span class="line">                        &quot;host&quot; : &quot;localhost:27020&quot;,</span><br><span class="line">                        &quot;arbiterOnly&quot; : true,</span><br><span class="line">                        &quot;buildIndexes&quot; : true,</span><br><span class="line">                        &quot;hidden&quot; : false,</span><br><span class="line">                        &quot;priority&quot; : 0,</span><br><span class="line">                        &quot;tags&quot; : &#123;</span><br><span class="line"></span><br><span class="line">                        &#125;,</span><br><span class="line">                        &quot;slaveDelay&quot; : NumberLong(0),</span><br><span class="line">                        &quot;votes&quot; : 1</span><br><span class="line">                &#125;</span><br><span class="line">        ],</span><br><span class="line">        &quot;settings&quot; : &#123;</span><br><span class="line">                &quot;chainingAllowed&quot; : true,</span><br><span class="line">                &quot;heartbeatIntervalMillis&quot; : 2000,</span><br><span class="line">                &quot;heartbeatTimeoutSecs&quot; : 10,</span><br><span class="line">                &quot;electionTimeoutMillis&quot; : 10000,</span><br><span class="line">                &quot;catchUpTimeoutMillis&quot; : -1,</span><br><span class="line">                &quot;catchUpTakeoverDelayMillis&quot; : 30000,</span><br><span class="line">                &quot;getLastErrorModes&quot; : &#123;</span><br><span class="line"></span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;getLastErrorDefaults&quot; : &#123;</span><br><span class="line">                        &quot;w&quot; : 1,</span><br><span class="line">                        &quot;wtimeout&quot; : 0</span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;replicaSetId&quot; : ObjectId(&quot;60410b7f1f17f19cfc27cd7b&quot;)</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br><span class="line"># 然后修改值（ID号默认从0开始）</span><br><span class="line">myrs:PRIMARY&gt; cfg.members[1].priority&#x3D;2</span><br><span class="line">2</span><br><span class="line"># 重新加载配置</span><br><span class="line">myrs:PRIMARY&gt; rs.reconfig(cfg)</span><br><span class="line">&#123;</span><br><span class="line">        &quot;ok&quot; : 1,</span><br><span class="line">        &quot;$clusterTime&quot; : &#123;</span><br><span class="line">                &quot;clusterTime&quot; : Timestamp(1614878769, 2),</span><br><span class="line">                &quot;signature&quot; : &#123;</span><br><span class="line">                        &quot;hash&quot; : BinData(0,&quot;AAAAAAAAAAAAAAAAAAAAAAAAAAA&#x3D;&quot;),</span><br><span class="line">                        &quot;keyId&quot; : NumberLong(0)</span><br><span class="line">                &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;operationTime&quot; : Timestamp(1614878769, 2)</span><br><span class="line">&#125;</span><br><span class="line">myrs:PRIMARY&gt; rs.conf()</span><br><span class="line">&#123;</span><br><span class="line">        &quot;_id&quot; : &quot;myrs&quot;,</span><br><span class="line">        &quot;version&quot; : 4,</span><br><span class="line">        &quot;term&quot; : 2,</span><br><span class="line">        &quot;protocolVersion&quot; : NumberLong(1),</span><br><span class="line">        &quot;writeConcernMajorityJournalDefault&quot; : true,</span><br><span class="line">        &quot;members&quot; : [</span><br><span class="line">                &#123;</span><br><span class="line">                        &quot;_id&quot; : 0,</span><br><span class="line">                        &quot;host&quot; : &quot;localhost:27018&quot;,</span><br><span class="line">                        &quot;arbiterOnly&quot; : false,</span><br><span class="line">                        &quot;buildIndexes&quot; : true,</span><br><span class="line">                        &quot;hidden&quot; : false,</span><br><span class="line">                        &quot;priority&quot; : 1,</span><br><span class="line">                        &quot;tags&quot; : &#123;</span><br><span class="line"></span><br><span class="line">                        &#125;,</span><br><span class="line">                        &quot;slaveDelay&quot; : NumberLong(0),</span><br><span class="line">                        &quot;votes&quot; : 1</span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line">                        &quot;_id&quot; : 1,</span><br><span class="line">                        &quot;host&quot; : &quot;localhost:27019&quot;,</span><br><span class="line">                        &quot;arbiterOnly&quot; : false,</span><br><span class="line">                        &quot;buildIndexes&quot; : true,</span><br><span class="line">                        &quot;hidden&quot; : false,</span><br><span class="line">                        &quot;priority&quot; : 2,</span><br><span class="line">                        &quot;tags&quot; : &#123;</span><br><span class="line"></span><br><span class="line">                        &#125;,</span><br><span class="line">                        &quot;slaveDelay&quot; : NumberLong(0),</span><br><span class="line">                        &quot;votes&quot; : 1</span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line">                        &quot;_id&quot; : 2,</span><br><span class="line">                        &quot;host&quot; : &quot;localhost:27020&quot;,</span><br><span class="line">                        &quot;arbiterOnly&quot; : true,</span><br><span class="line">                        &quot;buildIndexes&quot; : true,</span><br><span class="line">                        &quot;hidden&quot; : false,</span><br><span class="line">                        &quot;priority&quot; : 0,</span><br><span class="line">                        &quot;tags&quot; : &#123;</span><br><span class="line"></span><br><span class="line">                        &#125;,</span><br><span class="line">                        &quot;slaveDelay&quot; : NumberLong(0),</span><br><span class="line">                        &quot;votes&quot; : 1</span><br><span class="line">                &#125;</span><br><span class="line">        ],</span><br><span class="line">        &quot;settings&quot; : &#123;</span><br><span class="line">                &quot;chainingAllowed&quot; : true,</span><br><span class="line">                &quot;heartbeatIntervalMillis&quot; : 2000,</span><br><span class="line">                &quot;heartbeatTimeoutSecs&quot; : 10,</span><br><span class="line">                &quot;electionTimeoutMillis&quot; : 10000,</span><br><span class="line">                &quot;catchUpTimeoutMillis&quot; : -1,</span><br><span class="line">                &quot;catchUpTakeoverDelayMillis&quot; : 30000,</span><br><span class="line">                &quot;getLastErrorModes&quot; : &#123;</span><br><span class="line"></span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;getLastErrorDefaults&quot; : &#123;</span><br><span class="line">                        &quot;w&quot; : 1,</span><br><span class="line">                        &quot;wtimeout&quot; : 0</span><br><span class="line">                &#125;,</span><br><span class="line">                &quot;replicaSetId&quot; : ObjectId(&quot;60410b7f1f17f19cfc27cd7b&quot;)</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>片刻后重新选举，主节点变成了从节点<br>![重新选举](mongodb集群/20210305012837564_5226.png =800x)</p>
+<h3 id="故障测试"><a href="#故障测试" class="headerlink" title="故障测试"></a>故障测试</h3><h4 id="副本节点故障测试"><a href="#副本节点故障测试" class="headerlink" title="副本节点故障测试"></a>副本节点故障测试</h4><p>关闭27018副本节点，上一步他已经成为了从节点<br>在主节点27019插入数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">myrs:PRIMARY&gt; db.comment.insert(&#123;&quot;_id&quot;:&quot;1&quot;,&quot;articleid&quot;:&quot;100001&quot;,&quot;content&quot;:&quot;我们不应该把清晨浪费在手机上，健康很重要，一杯温水幸福你我他。&quot;,&quot;userid&quot;:&quot;1002&quot;,&quot;nickname&quot;:&quot;相忘于江湖&quot;,&quot;createdatetime&quot;:new Date(&quot;2019-08-05T22:08:15.522Z&quot;),&quot;likenum&quot;:NumberInt(1000),&quot;state&quot;:&quot;1&quot;&#125;)</span><br><span class="line">WriteResult(&#123; &quot;nInserted&quot; : 1 &#125;)</span><br></pre></td></tr></table></figure>
+<p>再启动从节点</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">D:\software\MongoDB\Server\4.4\replica_sets\myrs_27018&gt;D:\software\MongoDB\Server\4.4\bin\mongod -f D:\software\MongoDB\Server\4.4\replica_sets\myrs_27018\mongod.conf</span><br><span class="line">查看数据库</span><br><span class="line">myrs:SECONDARY&gt; rs.secondaryOk()</span><br><span class="line">myrs:SECONDARY&gt; db.comment.find()</span><br><span class="line">&#123; &quot;_id&quot; : &quot;1&quot;, &quot;articleid&quot; : &quot;100001&quot;, &quot;content&quot; : &quot;我们不应该把清晨浪费在手机上，健康很重要，一杯温水幸福你我他。&quot;, &quot;userid&quot; : &quot;1002&quot;, &quot;nickname&quot; : &quot;相忘于江湖&quot;, &quot;createdatetime&quot; : ISODate(&quot;2019-08-05T22:08:15.522Z&quot;), &quot;likenum&quot; : 1000, &quot;state&quot; : &quot;1&quot; &#125;</span><br></pre></td></tr></table></figure>
+<p>主节点写入的数据，会自动同步给从节点</p>
+<h4 id="主节点故障测试"><a href="#主节点故障测试" class="headerlink" title="主节点故障测试"></a>主节点故障测试</h4><p>关闭27019节点<br>![关闭主节点](mongodb集群/20210305013636429_13236.png =800x)<br>从节点和仲裁节点对27019的心跳失败，当失败超过10秒，此时因为没有主节点了，会自动发起投票。而副本节点只有27018，因此，候选人只有一个就是27018，开始投票。27020向27018投了一票，27018本身自带一票，因此共两票，超过了“大多数”。27020是仲裁节点，没有选举权，27018不向其投票，其票数是0.最终结果，27018成为主节点。具备读写功能。<br>![从节点变为主节点](mongodb集群/20210305013824592_2794.png =800x)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># 在主节点插入数据</span><br><span class="line">myrs:PRIMARY&gt; db.comment.insert(&#123;&quot;_id&quot;:&quot;2&quot;,&quot;articleid&quot;:&quot;100001&quot;,&quot;content&quot;:&quot;我夏天空腹喝凉开水，冬天喝温开水&quot;,&quot;userid&quot;:&quot;1005&quot;,&quot;nickname&quot;:&quot;伊人憔悴&quot;,&quot;createdatetime&quot;:new Date(&quot;2019-08-05T23:58:51.485Z&quot;),&quot;likenum&quot;:NumberInt(888),&quot;state&quot;:&quot;1&quot;&#125;)</span><br><span class="line">WriteResult(&#123; &quot;nInserted&quot; : 1 &#125;)</span><br><span class="line"># 再启动27019节点</span><br><span class="line">D:\software\MongoDB\Server\4.4\replica_sets\myrs_27019&gt;D:\software\MongoDB\Server\4.4\bin\mongod -f D:\software\MongoDB\Server\4.4\replica_sets\myrs_27019\mongod.conf</span><br><span class="line"># 登录27019</span><br><span class="line">D:\software\MongoDB\Server\4.4\bin&gt;mongo --host&#x3D;127.0.0.1 --port&#x3D;27019</span><br><span class="line">MongoDB shell version v4.4.4</span><br><span class="line"># 发现27019仍为主节点，因为优先级高，但数据自动从27019同步。实现了高可用。</span><br><span class="line">myrs:PRIMARY&gt; db.comment.find()                                                       凉开水，冬                                                   te&quot;:&quot;1&quot;&#125;)</span><br><span class="line">&#123; &quot;_id&quot; : &quot;1&quot;, &quot;articleid&quot; : &quot;100001&quot;, &quot;content&quot; : &quot;我们不应该把清晨浪费在手机上，健康很重要，一杯温水幸福你我他。&quot;, &quot;userid&quot; : &quot;1002&quot;, &quot;nickname&quot; : &quot;相忘于江湖&quot;, &quot;createdatetime&quot; : ISODate(&quot;2019-08-05T22:08:15.522Z&quot;), &quot;likenum&quot; : 1000, &quot;state&quot; : &quot;1&quot; &#125;</span><br><span class="line">&#123; &quot;_id&quot; : &quot;2&quot;, &quot;articleid&quot; : &quot;100001&quot;, &quot;content&quot; : &quot;我夏天空腹喝凉开水，冬天喝温开水&quot;, &quot;userid&quot; : &quot;1005&quot;, &quot;nickname&quot; : &quot;伊人憔悴&quot;, &quot;createdatetime&quot; : ISODate(&quot;2019-08-05T23:58:51.485Z&quot;), &quot;likenum&quot; : 888, &quot;state&quot; : &quot;1&quot; &#125;</span><br></pre></td></tr></table></figure>
+<h4 id="仲裁节点和主节点故障"><a href="#仲裁节点和主节点故障" class="headerlink" title="仲裁节点和主节点故障"></a>仲裁节点和主节点故障</h4><p>先关掉仲裁节点27020，关掉现在的主节点27019，登录27018后，发现，27018仍然是从节点，副本集中没有主节点了，导致此时，副本集是只读状态，无法写入。<br>为啥不选举了？因为27018的票数，没有获得大多数，即没有大于等于2，它只有默认的一票（优先级是1）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">D:\software\MongoDB\Server\4.4\bin&gt;mongo --host&#x3D;127.0.0.1 --port&#x3D;27018</span><br><span class="line">MongoDB shell version v4.4.4</span><br><span class="line">connecting to: mongodb:&#x2F;&#x2F;127.0.0.1:27018&#x2F;?compressors&#x3D;disabled&amp;gssapiServiceName&#x3D;mongodb</span><br><span class="line">Implicit session: session &#123; &quot;id&quot; : UUID(&quot;c209fd88-7a8a-48a9-a739-cf277d5caae0&quot;) &#125;</span><br><span class="line">MongoDB server version: 4.4.4</span><br><span class="line">myrs:SECONDARY&gt;</span><br></pre></td></tr></table></figure>
+<p>如果要触发选举，随便加入一个成员即可。<br>如果只加入27020仲裁节点成员，则主节点一定是27018，因为没得选了，仲裁节点不参与选举，但参与投票。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># 加入仲裁节点后，发现27018从从节点变成主节点</span><br><span class="line">myrs:SECONDARY&gt;</span><br><span class="line">myrs:PRIMARY&gt;</span><br></pre></td></tr></table></figure>
+
+<p>如果只加入27019节点，会发起选举。因为27018两票，27019是三票，所以27019作为主节点</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 启动27019（优先级为2的节点）</span><br><span class="line">D:\software\MongoDB\Server\4.4\replica_sets\myrs_27019&gt;D:\software\MongoDB\Server\4.4\bin\mongod -f D:\software\MongoDB\Server\4.4\replica_sets\myrs_27019\mongod.conf</span><br><span class="line">myrs:SECONDARY&gt;</span><br><span class="line">myrs:PRIMARY&gt;</span><br><span class="line"># 27018最后变成了从节点</span><br><span class="line">myrs:SECONDARY&gt;</span><br></pre></td></tr></table></figure>
+<h4 id="仲裁节点和从节点故障"><a href="#仲裁节点和从节点故障" class="headerlink" title="仲裁节点和从节点故障"></a>仲裁节点和从节点故障</h4><p>先关掉仲裁节点27020，<br>关掉现在的副本节点27018<br>10秒后，27019主节点自动降级为副本节点。（服务降级）<br>副本集不可写数据了，已经故障了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">D:\software\MongoDB\Server\4.4\bin&gt;mongo --host&#x3D;127.0.0.1 --port&#x3D;27019</span><br><span class="line">MongoDB shell version v4.4.4</span><br><span class="line">connecting to: mongodb:&#x2F;&#x2F;127.0.0.1:27019&#x2F;?compressors&#x3D;disabled&amp;gssapiServiceName&#x3D;mongodb</span><br><span class="line">Implicit session: session &#123; &quot;id&quot; : UUID(&quot;b04aecb3-df34-40e1-9544-20bd079bb771&quot;) &#125;</span><br><span class="line">MongoDB server version: 4.4.4</span><br><span class="line">myrs:SECONDARY&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="Compass连接副本集"><a href="#Compass连接副本集" class="headerlink" title="Compass连接副本集"></a>Compass连接副本集</h3><p>![ip端口配置](mongodb集群/20210305015848274_23260.png =800x)<br>![副本集配置](mongodb集群/20210305015909222_31597.png =800x)<br>![副本集](mongodb集群/20210305015937572_10190.png =800x)</p>
+<h3 id="python连接副本集"><a href="#python连接副本集" class="headerlink" title="python连接副本集"></a>python连接副本集</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line">#!&#x2F;usr&#x2F;bin&#x2F;python</span><br><span class="line"># -*- coding: utf-8 -*-</span><br><span class="line">import pymongo</span><br><span class="line">from pymongo import MongoClient</span><br><span class="line">from pymongo import ReadPreference</span><br><span class="line">import time</span><br><span class="line">import argparse</span><br><span class="line"># 定义执行时长装饰器函数</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def warps(*args):</span><br><span class="line">    def deco(func):</span><br><span class="line">        def _deco(*args, **kwargs):</span><br><span class="line">            # 记录开始时间</span><br><span class="line">            start &#x3D; time.clock()</span><br><span class="line">            # 回调原函数</span><br><span class="line">            func(*args, **kwargs)</span><br><span class="line">            # 记录结束时间</span><br><span class="line">            end &#x3D; time.clock()</span><br><span class="line">            # 计算执行时长</span><br><span class="line">            delat &#x3D; end - start</span><br><span class="line">            # 转换成ms输出</span><br><span class="line">            print(&quot;delay:%sms&quot; % (int(delat*1000)))</span><br><span class="line">        return _deco</span><br><span class="line">    return deco</span><br><span class="line"></span><br><span class="line"># 连接副本集</span><br><span class="line">conn &#x3D; MongoClient([&#39;127.0.0.1:27018&#39;, &#39;127.0.0.1:27019&#39;, &#39;127.0.0.1:27020&#39;])</span><br><span class="line"># 读写分离</span><br><span class="line">db &#x3D; conn.get_database(&#39;hnrtest&#39;, read_preference&#x3D;ReadPreference.SECONDARY_PREFERRED)</span><br><span class="line"># 定义连接的集合</span><br><span class="line">collection &#x3D; db.student</span><br><span class="line"># 创建插入数据函数</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def data_insert(num):</span><br><span class="line">    try:</span><br><span class="line">        for i in range(1, num):</span><br><span class="line">            collection.insert(&#123;&quot;name&quot;: &quot;student&quot;+str(i), &quot;age&quot;: (i % 100), &quot;city&quot;: &quot;FuZhou&quot;&#125;)</span><br><span class="line">    except Exception as e:</span><br><span class="line">        print(&quot;insert data:&quot;, e)</span><br><span class="line"># 创建查询数据函数，引用装饰器函数</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">@warps()</span><br><span class="line">def data_select(num):</span><br><span class="line">    try:</span><br><span class="line">        count &#x3D; collection.find().count()</span><br><span class="line">        while count !&#x3D; num - 1:</span><br><span class="line">            count &#x3D; collection.find().count()</span><br><span class="line">    except Exception as e:</span><br><span class="line">        print(&quot;select data:&quot;, e)</span><br><span class="line"># 创建删除数据函数</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def data_delete():</span><br><span class="line">    try:</span><br><span class="line">        collection.remove(&#123;&#125;)</span><br><span class="line">    except Exception as e:</span><br><span class="line">        print(&quot;delete data:&quot;, e)</span><br><span class="line"># 创建计算延迟时长函数</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def data_delay(num):</span><br><span class="line">    data_insert(num)</span><br><span class="line">    data_select(num)</span><br><span class="line"></span><br><span class="line">if __name__ &#x3D;&#x3D; &#39;__main__&#39;:</span><br><span class="line">    # 定义脚本需要传入插入的数据量，默认值为1000，通过-n传入参数</span><br><span class="line">    parser &#x3D; argparse.ArgumentParser(description&#x3D;&#39;insert data to mongodb number&#39;)</span><br><span class="line">    parser.add_argument(&#39;-n&#39;, action&#x3D;&#39;store&#39;, dest&#x3D;&#39;num&#39;, type&#x3D;int, required&#x3D;False, default&#x3D;1000)</span><br><span class="line">    given_args &#x3D; parser.parse_args()</span><br><span class="line">    num &#x3D; given_args.num</span><br><span class="line">    data_delete()</span><br><span class="line">    data_delay(num)</span><br></pre></td></tr></table></figure>
+<h2 id="分片集群-Sharded-Cluster"><a href="#分片集群-Sharded-Cluster" class="headerlink" title="分片集群-Sharded Cluster"></a>分片集群-Sharded Cluster</h2><h3 id="分片概念"><a href="#分片概念" class="headerlink" title="分片概念"></a>分片概念</h3><p>分片（sharding）是一种<strong>跨多台机器分布数据</strong>的方法， MongoDB使用<strong>分片</strong>来支持具有<strong>非常大</strong>的数据集和<strong>高吞吐量操作</strong>的部署。</p>
+<h4 id="为什么需要分片？"><a href="#为什么需要分片？" class="headerlink" title="为什么需要分片？"></a>为什么需要分片？</h4><p>具有大型数据集或高吞吐量应用程序的数据库系统可以会挑战单个服务器的容量。例如，高查询率会耗尽服务器的CPU容量。工作集大小大于系统的RAM会强调磁盘驱动器的I / O容量。<br>有两种解决系统增长的方法：垂直扩展和水平扩展</p>
+<blockquote>
+<p>垂直扩展：即在单台服务器上进行扩展，使它的CPU更强大或者添加更多的RAM增加容量，但垂直扩展具有实际的最大值<br>水平扩展：即划分系统数据集并加载多个服务器，添加其他服务器以根据需要增加容量。虽然单个机器的总体速度或容量可能不高，但每台机器处理整个工作负载的子集，可能提供比单个高速大容量服务器更高的效率。扩展部署容量只需要根据需要添加额外的服务器，这可能比单个机器的高端硬件的总体成本更低。但是基础架构和部署维护的复杂性增加。MongoDB支持通过分片进行水平扩展。</p>
+</blockquote>
+<h3 id="分片集群包含的组件"><a href="#分片集群包含的组件" class="headerlink" title="分片集群包含的组件"></a>分片集群包含的组件</h3><p>MongoDB分片群集包含以下组件：</p>
+<ul>
+<li>分片（存储）：每个分片包含分片数据的子集。 每个分片都可以部署为副本集。</li>
+<li>mongos（路由）：mongos充当查询路由器，在客户端应用程序和分片集群之间提供接口。</li>
+<li>config servers（“调度”的配置）：配置服务器存储群集的元数据和配置设置。 从MongoDB 3.4开始，必须将配置服务器部署为副本集（CSRS）。<br>![分片集群中组件的交互](mongodb集群/20210306000910191_26224.png =800x)<br>MongoDB在集合级别对数据进行分片，将集合数据分布在集群中的分片上。<h3 id="分片集群架构目标"><a href="#分片集群架构目标" class="headerlink" title="分片集群架构目标"></a>分片集群架构目标</h3>两个分片节点副本集（3+3）+一个配置节点副本集（3）+两个路由节点（2），共11个服务节点。<br>![](mongodb集群/20210306010523066_23683.png =800x)<br>客户端访问路由节点，路由节点获取配置节点的分片配置，将数据进行分片。分片规则有两种：哈希规则和范围规则，哈希规则能将数据平均写入各个分片节点，但查询可能要遍历所有的节点。范围规则查询定位节点比较容易，但有热点数据时，可能会引起分片节点的写入不均衡<br>操作顺序：<br>1、分片节点副本集创建<br>1）配置文件需要写入分片的角色<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sharding:</span><br><span class="line">#分片角色</span><br><span class="line">clusterRole: shardsvr</span><br></pre></td></tr></table></figure>
+2）添加节点<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">rs.initiate() # 初始化副本集</span><br><span class="line">rs.add(&quot;180.76.159.126:27118&quot;) # 从节点</span><br><span class="line">rs.addArb(&quot;180.76.159.126:27218&quot;) # 仲裁节点</span><br></pre></td></tr></table></figure>
+3）配置第二套副本集<br>2、配置节点副本集创建<br>1）配置文件写入分片的角色<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sharding:</span><br><span class="line">clusterRole: configsvr</span><br></pre></td></tr></table></figure>
+2）配置一主两从<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">rs.initiate() # 初始化副本集</span><br><span class="line">rs.add(&quot;180.76.159.126:27119&quot;)</span><br><span class="line">rs.add(&quot;180.76.159.126:27219&quot;)</span><br></pre></td></tr></table></figure>
+3、路由节点的创建和添加<br>1）路由节点配置分片角色<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sharding:</span><br><span class="line">    #指定配置节点副本集</span><br><span class="line">    configDB:</span><br><span class="line">        myconfigrs&#x2F;180.76.159.126:27019,180.76.159.126:27119,180.76.159.126:27219</span><br></pre></td></tr></table></figure>
+2）路由节点的配置文件<br>properties配置文件参考<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">logpath&#x3D;&#x2F;mongodb&#x2F;sharded_cluster&#x2F;mymongos_27017&#x2F;log&#x2F;mongos.log</span><br><span class="line">logappend&#x3D;true</span><br><span class="line">bind_ip_all&#x3D;true</span><br><span class="line">port&#x3D;27017</span><br><span class="line">fork&#x3D;true</span><br><span class="line">configdb&#x3D;myconfigrs&#x2F;180.76.159.126:27019,180.76.159.126:27119,180.76.159.126:27219</span><br></pre></td></tr></table></figure>
+3）在路由节点上进行分片配置操作<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 添加分片，语法</span><br><span class="line">sh.addShard(&quot;IP:Port&quot;)</span><br><span class="line"># 将第一套分片副本集添加进来：</span><br><span class="line">sh.addShard(&quot;myshardrs01&#x2F;192.168.0.2:27018,180.76.159.126:27118,180.76.159.126:27218&quot;)</span><br><span class="line"># 继续将第二套分片副本集添加进来：</span><br><span class="line">sh.addShard(&quot;myshardrs02&#x2F;192.168.0.2:27318,180.76.159.126:27418,180.76.159.126:27518&quot;)</span><br></pre></td></tr></table></figure>
+4）出现问题可移除分片<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">use admin</span><br><span class="line">db.runCommand( &#123; removeShard: &quot;myshardrs02&quot; &#125; )</span><br><span class="line">注意：如果只剩下最后一个shard，是无法删除的</span><br><span class="line">移除时会自动转移分片数据，需要一个时间过程。</span><br><span class="line">完成后，再次执行删除分片命令才能真正删除。</span><br></pre></td></tr></table></figure>
+5）开启分片功能：sh.enableSharding(“库名”)、sh.shardCollection(“库名.集合名”,{“key”:1})</li>
+<li><em>sh.enableSharding(“库名”)*</em></li>
+<li><em>sh.shardCollection(namespace, key, unique)*</em><br>对集合进行分片时,你需要选择一个 片键（Shard Key） , shard key 是每条记录都必须包含的,且建立了索引的单个字段或复合字段,MongoDB按照片键将数据划分到不同的 数据块 中,并将 数据块 均衡地分布到所有分片中.为了按照片键划分数据块,MongoDB使用 基于哈希的分片方式（随机平均分配）或者基于范围的分片方式（数值大小分配） 。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 在mongos上的articledb数据库配置sharding:</span><br><span class="line">sh.enableSharding(&quot;articledb&quot;)</span><br><span class="line"># 集合分片,使用 sh.shardCollection() 方法指定集合和分片键</span><br><span class="line">sh.shardCollection(&quot;articledb.comment&quot;,&#123;&quot;nickname&quot;:&quot;hashed&quot;&#125;) # 哈希</span><br><span class="line">sh.shardCollection(&quot;articledb.author&quot;,&#123;&quot;age&quot;:1&#125;) # 范围</span><br></pre></td></tr></table></figure>
+6）添加另外一个路由节点，直接加配置文件及启动即可，无需再次配置分配策略，直接从配置服务器读取</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/03/07/mongodb%E5%9F%BA%E7%A1%80/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/a.jpg">
+      <meta itemprop="name" content="Haiyefeng">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="码上有解">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/03/07/mongodb%E5%9F%BA%E7%A1%80/" class="post-title-link" itemprop="url">mongodb基础</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-03-07 23:18:18 / 修改时间：23:31:56" itemprop="dateCreated datePublished" datetime="2021-03-07T23:18:18+08:00">2021-03-07</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>title: mongodb基础<br>date: 2021-03-07 23:27:28<br>categories:<br>    - 中间件<br>tags:<br>    - mongodb</p>
+<h1 id="mongodb"><a href="#mongodb" class="headerlink" title="mongodb"></a>mongodb</h1><h2 id="mongodb简介"><a href="#mongodb简介" class="headerlink" title="mongodb简介"></a>mongodb简介</h2><h3 id="mongodb体系结构"><a href="#mongodb体系结构" class="headerlink" title="mongodb体系结构"></a>mongodb体系结构</h3><p>![](mongodb基础/20210223113844925_22479.png =733x)<br>![](mongodb基础/20210223113902496_7876.png =826x)</p>
+<h3 id="数据模型"><a href="#数据模型" class="headerlink" title="数据模型"></a>数据模型</h3><p>MongoDB的最小存储单位就是文档(document)对象。文档(document)对象对应于关系型数据库的行。数据在MongoDB中以<br>BSON（Binary-JSON）文档的格式存储在磁盘上。<br>BSON数据类型参考列表：<br>![](mongodb基础/20210223114012166_24106.png =815x)</p>
+<h3 id="MongoDB的特点"><a href="#MongoDB的特点" class="headerlink" title="MongoDB的特点"></a>MongoDB的特点</h3><p>（1）高性能：<br>MongoDB提供高性能的数据持久性。对嵌入式数据模型的支持减少了数据库系统上的I/O活动。索引支持更快的查询，并且可以包含来自嵌入式文档和数组的键。（文本索引解决搜索的需求、TTL索引解决历史数据自动过期的需求、地理位置索引可用于构建各种 O2O 应用）<br>mmapv1、wiredtiger、mongorocks（rocksdb）、in-memory 等多引擎支持满足各种场景需求。Gridfs解决文件存储的需求。<br>（2）高可用性：<br>MongoDB的复制工具称为副本集（replica set），它可提供自动故障转移和数据冗余。<br>（3）高扩展性：<br>MongoDB提供了水平可扩展性作为其核心功能的一部分。<br>分片将数据分布在一组集群的机器上。（海量数据存储，服务能力水平扩展）<br>从3.4开始，MongoDB支持基于片键创建数据区域。在一个平衡的集群中，MongoDB将一个区域所覆盖的读写只定向到该区域内的那些片。<br>（4）丰富的查询支持：<br>MongoDB支持丰富的查询语言，支持读和写操作(CRUD)，比如数据聚合、文本搜索和地理空间查询等。<br>（5）其他特点：<br>如无模式（动态模式）、灵活的文档模型</p>
+<h3 id="mongodb常用命令"><a href="#mongodb常用命令" class="headerlink" title="mongodb常用命令"></a>mongodb常用命令</h3><h4 id="连接、关闭等相关命令"><a href="#连接、关闭等相关命令" class="headerlink" title="连接、关闭等相关命令"></a>连接、关闭等相关命令</h4><p>关闭服务命令：<br>（1）快速关闭方法（快速，简单，数据可能会出错）<br>目标：通过系统的kill命令直接杀死进程：<br>杀完要检查一下，避免有的没有杀掉</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#通过进程编号关闭节点</span><br><span class="line">kill -2 54410</span><br></pre></td></tr></table></figure>
+<p>如果一旦是因为数据损坏，则需要进行如下操作（了解）：<br>1）删除lock文件：<br><code>rm -f /mongodb/single/data/db/*.lock</code><br>2）修复数据：<br><code>/usr/local/mongodb/bin/mongod --repair --dbpath=/mongodb/single/data/db</code><br>（2）标准的关闭方法（数据不容易出错，但麻烦）：<br>目标：通过mongo客户端中的shutdownServer命令来关闭服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;客户端登录服务，注意，这里通过localhost登录，如果需要远程登录，必须先登录认证才行。</span><br><span class="line">mongo --port 27017</span><br><span class="line">&#x2F;&#x2F;#切换到admin库</span><br><span class="line">use admin</span><br><span class="line">&#x2F;&#x2F;关闭服务</span><br><span class="line">db.shutdownServer()</span><br></pre></td></tr></table></figure>
+<h4 id="增删改查相关命令"><a href="#增删改查相关命令" class="headerlink" title="增删改查相关命令"></a>增删改查相关命令</h4><p>选择切换数据库：use articledb<br>插入数据：db.comment.insert({bson数据})<br>查询所有数据：db.comment.find();<br>条件查询数据：db.comment.find({条件})<br>查询符合条件的第一条记录：db.comment.findOne({条件})<br>查询符合条件的前几条记录：db.comment.find({条件}).limit(条数)<br>查询符合条件的跳过的记录：db.comment.find({条件}).skip(条数)<br>修改数据：db.comment.update({条件},{修改后的数据}) 或db.comment.update({条件},{$set:{要修改部分的字段:数据})，批量修改加参数{multi:true}<br>修改数据并自增某字段值：db.comment.update({条件},{$inc:{自增的字段:步进值}})<br>删除数据：db.comment.remove({条件})<br>统计查询：db.comment.count({条件})<br>模糊查询：db.comment.find({字段名:/正则表达式/})<br>条件比较运算：db.comment.find({字段名:{$gt:值}})<br>包含查询：db.comment.find({字段名:{$in:[值1，值2]}})或db.comment.find({字段名:{$nin:[值1，值2]}})<br>条件连接查询：db.comment.find({$and:[{条件1},{条件2}]})或db.comment.find({$or:[{条件1},{条件2}]})</p>
+<h3 id="索引-Index"><a href="#索引-Index" class="headerlink" title="索引-Index"></a>索引-Index</h3><p>MongoDB索引使用B树数据结构（确切的说是B-Tree，MySQL是B+Tree）</p>
+<h4 id="索引的分类"><a href="#索引的分类" class="headerlink" title="索引的分类"></a>索引的分类</h4><h5 id="单字段索引"><a href="#单字段索引" class="headerlink" title="单字段索引"></a>单字段索引</h5><p>MongoDB支持在文档的单个字段上创建用户定义的升序/降序索引，称为单字段索引（Single Field Index）。<br>于单个字段索引和排序操作，索引键的排序顺序（即升序或降序）并不重要，因为MongoDB可以在任何方向上遍历索引。</p>
+<h5 id="复合索引"><a href="#复合索引" class="headerlink" title="复合索引"></a>复合索引</h5><p>MongoDB还支持多个字段的用户定义索引，即复合索引（Compound Index）。<br>复合索引中列出的字段顺序具有重要意义。例如，如果复合索引由 { userid: 1, score: -1 } 组成，则索引首先按userid正序排序，然后<br>在每个userid的值内，再在按score倒序排序。</p>
+<h5 id="其他索引"><a href="#其他索引" class="headerlink" title="其他索引"></a>其他索引</h5><p>地理空间索引（Geospatial Index）、文本索引（Text Indexes）、哈希索引（Hashed Indexes）。<br>地理空间索引（Geospatial Index）<br>为了支持对地理空间坐标数据的有效查询，MongoDB提供了两种特殊的索引：返回结果时使用平面几何的二维索引和返回结果时使用球面几何的二维球面索引。<br>文本索引（Text Indexes）<br>MongoDB提供了一种文本索引类型，支持在集合中搜索字符串内容。这些文本索引不存储特定于语言的停止词（例如“the”、“a”、“or”），而将集合中的词作为词干，只存储根词<br>哈希索引（Hashed Indexes）<br>为了支持基于散列的分片，MongoDB提供了散列索引类型，它对字段值的散列进行索引。这些索引在其范围内的值分布更加随机，但只支持相等匹配，不支持基于范围的查询。</p>
+<h4 id="索引的管理操作"><a href="#索引的管理操作" class="headerlink" title="索引的管理操作"></a>索引的管理操作</h4><p>查看一个集合的所有索引 db.collection.getIndexes()<br>在集合上创建索引 db.collection.createIndex(keys, options)<br>![索引可选项](mongodb基础/20210225114632900_11484.png =860x)<br>移除指定的索引，或移除所有索引 db.collection.dropIndex(index)、db.collection.dropIndexes()【_id默认索引不会被删除】</p>
+<h4 id="查询性能"><a href="#查询性能" class="headerlink" title="查询性能"></a>查询性能</h4><p>分析查询性能（Analyze Query Performance）通常使用执行计划（解释计划、Explain Plan）来查看查询的情况，如查询耗费的时间、是否基于索引查询等。<br>db.collection.find(query,options).explain(options)<br>![](mongodb基础/20210225115421144_17821.png =704x)<br>所以参数为：”stage” : “IXSCAN”</p>
+<h2 id="django使用mongodb"><a href="#django使用mongodb" class="headerlink" title="django使用mongodb"></a>django使用mongodb</h2><h3 id="安装djongo"><a href="#安装djongo" class="headerlink" title="安装djongo"></a>安装djongo</h3><p>pip install djongo</p>
+<h3 id="配置settings"><a href="#配置settings" class="headerlink" title="配置settings"></a>配置settings</h3><p>DATABASES = {<br>    ‘default’: {<br>        ‘ENGINE’: ‘djongo’,<br>        ‘ENFORCE_SCHEMA’: True,<br>        ‘NAME’: ‘comment’,   # 库名<br>        ‘CLIENT’: {<br>            ‘host’: ‘127.0.0.1’,<br>        }<br>    }<br>}</p>
+<h3 id="新建app"><a href="#新建app" class="headerlink" title="新建app"></a>新建app</h3><p>python manage.py startapp test_mon</p>
+<h3 id="新建模型及函数、路由"><a href="#新建模型及函数、路由" class="headerlink" title="新建模型及函数、路由"></a>新建模型及函数、路由</h3><p>models.py</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">from django.db import models</span><br><span class="line"></span><br><span class="line"># Create your models here.</span><br><span class="line">from djongo import models</span><br><span class="line"></span><br><span class="line">class Blog(models.Model):</span><br><span class="line">    name &#x3D; models.CharField(max_length&#x3D;100)</span><br><span class="line"></span><br><span class="line">    class Meta:</span><br><span class="line">        abstract &#x3D; True</span><br><span class="line"></span><br><span class="line">class Entry(models.Model):</span><br><span class="line">    blog &#x3D; models.EmbeddedField(</span><br><span class="line">        model_container&#x3D;Blog</span><br><span class="line">    )</span><br><span class="line">    headline &#x3D; models.CharField(max_length&#x3D;255)</span><br></pre></td></tr></table></figure>
+<p>views.py</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">from test_mon.models import Entry</span><br><span class="line">from django.http.response import HttpResponse</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def test(request):</span><br><span class="line">    e &#x3D; Entry()</span><br><span class="line">    e.blog &#x3D; &#123;</span><br><span class="line">        &#39;name&#39;: &#39;Djongo&#39;</span><br><span class="line">    &#125;</span><br><span class="line">    e.headline &#x3D; &#39;The Django MongoDB connector&#39;</span><br><span class="line">    e.save()</span><br><span class="line">    return HttpResponse()</span><br></pre></td></tr></table></figure>
+
+<p>urls.py</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">from django.contrib import admin</span><br><span class="line">from django.urls import path</span><br><span class="line">from test_mon import views</span><br><span class="line"></span><br><span class="line">urlpatterns &#x3D; [</span><br><span class="line">    path(&#39;admin&#x2F;&#39;, admin.site.urls),</span><br><span class="line">    path(&#39;test&#x2F;&#39;, views.test),</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+<p>访问127.0.0.1/test/<br>mongo compass查看集合<br>![](mongodb基础/20210225150738553_13245.png =921x)</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/02/22/hello-world/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -403,9 +945,24 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2020-05-24 16:44:37 / 修改时间：23:12:53" itemprop="dateCreated datePublished" datetime="2020-05-24T16:44:37+08:00">2020-05-24</time>
+              <time title="创建时间：2020-05-24 16:44:37" itemprop="dateCreated datePublished" datetime="2020-05-24T16:44:37+08:00">2020-05-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-03-07 23:29:30" itemprop="dateModified" datetime="2021-03-07T23:29:30+08:00">2021-03-07</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MySQL/" itemprop="url" rel="index"><span itemprop="name">MySQL</span></a>
+                </span>
             </span>
 
           
@@ -734,364 +1291,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/15/Leetcode%EF%BC%9A%E5%9B%9E%E6%96%87%E6%95%B0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/a.jpg">
-      <meta itemprop="name" content="Haiyefeng">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="码上有解">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/04/15/Leetcode%EF%BC%9A%E5%9B%9E%E6%96%87%E6%95%B0/" class="post-title-link" itemprop="url">Leetcode：回文数</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-04-15 21:27:19" itemprop="dateCreated datePublished" datetime="2020-04-15T21:27:19+08:00">2020-04-15</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-16 00:01:20" itemprop="dateModified" datetime="2020-04-16T00:01:20+08:00">2020-04-16</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Leetcode/" itemprop="url" rel="index"><span itemprop="name">Leetcode</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h5 id="题目："><a href="#题目：" class="headerlink" title="题目："></a>题目：</h5><p>判断一个整数是否是回文数。回文数是指正序（从左向右）和倒序（从右向左）读都是一样的整数。</p>
-<p>示例 1:</p>
-<p>输入: 121<br>输出: true<br>示例 2:</p>
-<p>输入: -121<br>输出: false<br>解释: 从左向右读, 为 -121 。 从右向左读, 为 121- 。因此它不是一个回文数。<br>示例 3:</p>
-<p>输入: 10<br>输出: false<br>解释: 从右向左读, 为 01 。因此它不是一个回文数。<br>进阶:</p>
-<p>你能不将整数转为字符串来解决这个问题吗？</p>
-<p>来源：力扣（LeetCode）<br>链接：<a href="https://leetcode-cn.com/problems/palindrome-number" target="_blank" rel="noopener">https://leetcode-cn.com/problems/palindrome-number</a><br>著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。</p>
-<h5 id="题解："><a href="#题解：" class="headerlink" title="题解："></a>题解：</h5><p>效率似乎都不太高，后续再试试<br><strong>双端队列</strong></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># 转化为字符串的列表，使用双端队列，对比出列元素是否一致，不一致则返回False，直到没有元素或只剩一个元素</span><br><span class="line">class Solution(object):</span><br><span class="line">    def isPalindrome(self, x):</span><br><span class="line">        &quot;&quot;&quot;</span><br><span class="line">        :type x: int</span><br><span class="line">        :rtype: bool</span><br><span class="line">        &quot;&quot;&quot;</span><br><span class="line">        x_list &#x3D; list(str(x))</span><br><span class="line">        while len(x_list) &gt; 1:</span><br><span class="line">            if x_list.pop(0) !&#x3D; x_list.pop():</span><br><span class="line">                return False</span><br><span class="line">        return True</span><br></pre></td></tr></table></figure>
-<p><strong>指针</strong></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># 遍历字符串，对比对应两个位置的字符是否相同，不一致则返回False，直到遍历完成</span><br><span class="line">class Solution1(object):</span><br><span class="line">    def isPalindrome(self, x):</span><br><span class="line">        &quot;&quot;&quot;</span><br><span class="line">        :type x: int</span><br><span class="line">        :rtype: bool</span><br><span class="line">        &quot;&quot;&quot;</span><br><span class="line">        length &#x3D; len(str(x))</span><br><span class="line">        x_str &#x3D; str(x)</span><br><span class="line">        for i in range(0, length&#x2F;&#x2F;2):</span><br><span class="line">            if x_str[i] !&#x3D; x_str[length-1-i]:</span><br><span class="line">                return False</span><br><span class="line">        return True</span><br></pre></td></tr></table></figure>
-<p><strong>整数取余翻转</strong></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">class Solution2:</span><br><span class="line">    def isPalindrome(self, x):</span><br><span class="line">        &quot;&quot;&quot;</span><br><span class="line">        :type x: int</span><br><span class="line">        :rtype: bool</span><br><span class="line">        &quot;&quot;&quot;</span><br><span class="line">        if x &lt; 0 or (x !&#x3D; 0 and x % 10 &#x3D;&#x3D; 0):</span><br><span class="line">            return False</span><br><span class="line">        if x &lt; 10:</span><br><span class="line">            return True</span><br><span class="line">        reverse_x &#x3D; 0</span><br><span class="line">        while x &gt; reverse_x:</span><br><span class="line">            reverse_x &#x3D; (x % 10) + reverse_x * 10</span><br><span class="line">            x &#x3D; x &#x2F;&#x2F; 10</span><br><span class="line">        if reverse_x &#x3D;&#x3D; x or reverse_x &#x2F;&#x2F; 10 &#x3D;&#x3D; x:</span><br><span class="line">            return True</span><br><span class="line">        else:</span><br><span class="line">            return False</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/14/Leetcode%EF%BC%9A%E4%B8%A4%E6%95%B0%E4%B9%8B%E5%92%8C/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/a.jpg">
-      <meta itemprop="name" content="Haiyefeng">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="码上有解">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/04/14/Leetcode%EF%BC%9A%E4%B8%A4%E6%95%B0%E4%B9%8B%E5%92%8C/" class="post-title-link" itemprop="url">Leetcode：两数之和</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-04-14 22:46:36" itemprop="dateCreated datePublished" datetime="2020-04-14T22:46:36+08:00">2020-04-14</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-04-16 00:11:30" itemprop="dateModified" datetime="2020-04-16T00:11:30+08:00">2020-04-16</time>
-              </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Leetcode/" itemprop="url" rel="index"><span itemprop="name">Leetcode</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h5 id="题目："><a href="#题目：" class="headerlink" title="题目："></a>题目：</h5><p>两数之和<br>给定一个整数数组 nums 和一个目标值 target，请你在该数组中找出和为目标值的那 两个 整数，并返回他们的数组下标。</p>
-<p>你可以假设每种输入只会对应一个答案。但是，你不能重复利用这个数组中同样的元素。</p>
-<p>示例:</p>
-<p>给定 nums = [2, 7, 11, 15], target = 9</p>
-<p>因为 nums[0] + nums[1] = 2 + 7 = 9<br>所以返回 [0, 1]</p>
-<p>来源：力扣（LeetCode）<br>链接：<a href="https://leetcode-cn.com/problems/two-sum" target="_blank" rel="noopener">https://leetcode-cn.com/problems/two-sum</a><br>著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。</p>
-<h6 id="题解："><a href="#题解：" class="headerlink" title="题解："></a>题解：</h6><p><strong>暴力破解法</strong><br>要找出列表中两数之和等于某个数的两个数的下标，最容易想到的就是按照顺序把列表中的数两两相加，当和等于目标值时就返回。这里可以做两层遍历，第一层是从第一个数到倒数第二个数中依次取数，第二层是在第一层取得的数的后面到最后一个数中取数，然后两两相加，把所有可能都遍历一遍，这样的时间复杂度是O(n^2)<br><img src="/2020/04/14/Leetcode%EF%BC%9A%E4%B8%A4%E6%95%B0%E4%B9%8B%E5%92%8C/%E6%9A%B4%E5%8A%9B.png" alt="暴力"></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">class Solution(object):</span><br><span class="line">    def twoSum(self, nums, target):</span><br><span class="line">        &quot;&quot;&quot;</span><br><span class="line">        :type nums: List[int]</span><br><span class="line">        :type target: int</span><br><span class="line">        :rtype: List[int]</span><br><span class="line">        &quot;&quot;&quot;</span><br><span class="line">        for i in range(0, len(nums)-1):</span><br><span class="line">            for j in range(i+1, len(nums)):</span><br><span class="line">                if nums[i] + nums[j] &#x3D;&#x3D; target:</span><br><span class="line">                    return [i, j]</span><br><span class="line">        return</span><br></pre></td></tr></table></figure>
-
-<p><strong>哈希表法</strong><br>我们可以以空间换时间，把每次遍历的结果保存下来，然后在下一次遍历时在已经遍历过的数据中查看是否有合适的数据，有则返回，没有则把这个数保存，然后继续遍历。我们可以应用python的字典来保存这些遍历过的数，以数的值作为key，value则保存下标。然后在遍历某个数num的时候，先用target-num，用这个值作为key去字典中找，如果能找到， 则返回这两个数的key，否则将num的值以及下标保存下来。值得注意的是，这里不能用hash_map.get(target - val)来判断是否有对应值，因为索引0也会判定为False<br><img src="/2020/04/14/Leetcode%EF%BC%9A%E4%B8%A4%E6%95%B0%E4%B9%8B%E5%92%8C/%E5%93%88%E5%B8%8C.png" alt="哈希"></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">class Solution:</span><br><span class="line">    def twoSum(self, nums, target):</span><br><span class="line">        &quot;&quot;&quot;</span><br><span class="line">        :type nums: List[int]</span><br><span class="line">        :type target: int</span><br><span class="line">        :rtype: List[int]</span><br><span class="line">        &quot;&quot;&quot;</span><br><span class="line">        hash_map &#x3D; &#123;&#125;</span><br><span class="line">        for i, val in enumerate(nums):</span><br><span class="line">            if hash_map.get(target - val) !&#x3D; None:</span><br><span class="line">                return [hash_map.get(target - val), i]</span><br><span class="line">            else:</span><br><span class="line">                hash_map.update(&#123;val:i&#125;)</span><br><span class="line">        return</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/04/12/redis%E5%9F%BA%E7%A1%80/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/a.jpg">
-      <meta itemprop="name" content="Haiyefeng">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="码上有解">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/04/12/redis%E5%9F%BA%E7%A1%80/" class="post-title-link" itemprop="url">redis基础</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
-
-              <time title="创建时间：2020-04-12 19:37:19 / 修改时间：21:42:04" itemprop="dateCreated datePublished" datetime="2020-04-12T19:37:19+08:00">2020-04-12</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%9D%9E%E5%85%B3%E7%B3%BB%E5%9E%8B%E6%95%B0%E6%8D%AE%E5%BA%93/" itemprop="url" rel="index"><span itemprop="name">非关系型数据库</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h4 id="Redis"><a href="#Redis" class="headerlink" title="Redis"></a>Redis</h4><h5 id="MySQL与NoSQL"><a href="#MySQL与NoSQL" class="headerlink" title="MySQL与NoSQL"></a>MySQL与NoSQL</h5><h6 id="MySQL"><a href="#MySQL" class="headerlink" title="MySQL"></a>MySQL</h6><blockquote>
-<p>Mysql</p>
-</blockquote>
-<p>关系型数据库，适用于存储有特定结构的一系列数据，结构化存储。</p>
-<blockquote>
-<p>关系型数据库优点</p>
-</blockquote>
-<ul>
-<li>事务一致性：通过事务处理保持数据的一致性</li>
-<li>复杂查询：支持SQL，可以进行 JOIN 等复杂查询</li>
-<li>容易理解：二维表结构是非常贴近逻辑世界的一个概念，关系模型相对网状、层次等其他模型来说更容易理解</li>
-<li>使用方便：通用的 SQL 语言使得操作关系型数据库非常方便</li>
-<li>易于维护：丰富的完整性(实体完整性、参照完整性和用户定义的完整性)大大减低了数据冗余和数据不一致的概率</li>
-</ul>
-<blockquote>
-<p>关系型数据库缺点</p>
-</blockquote>
-<ul>
-<li>读写性能：在数据量达到一定规模时，由于关系型数据库的系统逻辑非常复杂，为了维护一致性，使得其非常容易发生死锁等的并发问题，所以导致其读写速度下滑非常严重</li>
-<li>表结构更新：表结构可以在被定义之后更新，但是如果有比较大的结构变更的话就会变得比较复杂</li>
-<li>高并发：网站的用户并发性非常高，往往达到每秒上万次读写请求，对于传统关系型数据库来说，硬盘I/O是一个很大的瓶颈</li>
-<li>海量数据：对于关系型数据库来说，在一张包含海量数据的表中查询，效率是非常低的</li>
-</ul>
-<h6 id="NoSQL"><a href="#NoSQL" class="headerlink" title="NoSQL"></a>NoSQL</h6><blockquote>
-<p>NoSQL(<strong><em>not only SQL</em></strong>)</p>
-</blockquote>
-<p>非关系型数据库（NoSQL）是对不同于传统的关系数据库的数据库管理系统的统称<br>非关系型数据库包括：</p>
-<ul>
-<li>KV键值存储(key-value)：memcached、Redis</li>
-<li>面向图关系的数据库：Neo4j、InfoGrid</li>
-<li>面向文档的数据库：MongoDB、CouchDB</li>
-<li>面向列的数据库：Cassandra、HBase</li>
-</ul>
-<blockquote>
-<p>非关系型数据库优点</p>
-</blockquote>
-<ul>
-<li>读写性能：无需经过 SQL 层的解析，读写性能很高。主要例子有Redis，由于其逻辑简单，而且纯内存操作，使得其性能非常出色，单节点每秒可以处理超过10万次读写操作；</li>
-<li>简单的扩展：基于键值对，数据没有耦合性，容易扩展。典型例子是 Cassandra，由于其架构是类似于经典的 P2P，所以能通过轻松地添加新的节点来扩展这个集群；</li>
-<li>存储格式多：支持key-value形式、文档形式、图片形式，而关系型数据库则只支持基础类型；</li>
-<li>低廉的成本：这是大多数分布式数据库共有的特点，因为主要都是开源软件，没有昂贵的License成本；</li>
-</ul>
-<blockquote>
-<p>非关系型数据库缺点</p>
-</blockquote>
-<ul>
-<li>不提供对 SQL 的支持：如果不支持 SQL 这样的工业标准，将会对用户产生一定的学习和应用迁移成本</li>
-<li>支持的特性不够丰富：现有产品所提供的功能都比较有限，大多数 NoSQL 数据库都不支持事务，也不像 MS SQL Server 和 Oracle 那样能提供各种附加功能，比如 BI 和报表等</li>
-<li>现有产品的不够成熟：大多数产品都还处于初创期，和关系型数据库几十年的完善不可同日而语</li>
-</ul>
-<p>总结：<br>先留着吧，后续再填，认识还不够深</p>
-<h5 id="Redis基本操作"><a href="#Redis基本操作" class="headerlink" title="Redis基本操作"></a>Redis基本操作</h5><blockquote>
-<p>连接Redis</p>
-</blockquote>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd &#x2F;usr&#x2F;local&#x2F;bin</span><br><span class="line">redis-server redis.config # 后面的是redis配置文件的文件路径及文件名</span><br><span class="line">redis-cli -h 127.0.0.1 -p 6379 # 默认为127.0.0.1，所以可以不用加-h</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>切换数据库</p>
-</blockquote>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select 2 # 切换数据库，默认是0</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>查看数据库大小</p>
-</blockquote>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DBSIZE</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>清空当前的数据库</p>
-</blockquote>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">flushdb</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>清空所有数据库</p>
-</blockquote>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">flushall</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>查看key是否存在</p>
-</blockquote>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">exists key_name # 查看key_name是否存在</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>查看某个键的过期时间</p>
-</blockquote>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ttl key_name # 查看key_name的过期时间</span><br></pre></td></tr></table></figure>
-
-<h5 id="五大数据类型"><a href="#五大数据类型" class="headerlink" title="五大数据类型"></a>五大数据类型</h5><h6 id="String（字符串）"><a href="#String（字符串）" class="headerlink" title="String（字符串）"></a>String（字符串）</h6><p>基本命令：<br>应用场景：</p>
-<h6 id="List（列表）"><a href="#List（列表）" class="headerlink" title="List（列表）"></a>List（列表）</h6><p>基本命令：<br>应用场景：</p>
-<h6 id="Set（集合）"><a href="#Set（集合）" class="headerlink" title="Set（集合）"></a>Set（集合）</h6><p>无序集合<br>基本命令：<br>应用场景：</p>
-<h6 id="Hash（哈希）"><a href="#Hash（哈希）" class="headerlink" title="Hash（哈希）"></a>Hash（哈希）</h6><p>基本命令：<br>应用场景：</p>
-<h6 id="Zset（有序集合）"><a href="#Zset（有序集合）" class="headerlink" title="Zset（有序集合）"></a>Zset（有序集合）</h6><p>基本命令：<br>应用场景：</p>
-<h5 id="三种特殊数据类型"><a href="#三种特殊数据类型" class="headerlink" title="三种特殊数据类型"></a>三种特殊数据类型</h5><h6 id="Geospatial地理位置"><a href="#Geospatial地理位置" class="headerlink" title="Geospatial地理位置"></a>Geospatial地理位置</h6><p>基本命令：<br>应用场景：</p>
-<h6 id="Hyperloglog"><a href="#Hyperloglog" class="headerlink" title="Hyperloglog"></a>Hyperloglog</h6><p>基本命令：<br>应用场景：</p>
-<h6 id="Bitmap"><a href="#Bitmap" class="headerlink" title="Bitmap"></a>Bitmap</h6><p>基本命令：<br>应用场景：</p>
-<h5 id="事务"><a href="#事务" class="headerlink" title="事务"></a>事务</h5><p>Redis事务本质，是一组命令的集合，一个事务的命令会被序列化，在执行过程中按顺序依次执行<br>一次性、顺序性、排他性<br>Redis的事务没有隔离级别的概念，并且不保证原子性（单条命令具有原子性）</p>
-<blockquote>
-<p>基本命令</p>
-</blockquote>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">multi # 开启事务</span><br><span class="line"># 输入一系列命令 set、get、rem等</span><br><span class="line">exec # 执行事务</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>为什么Redis的事务不保证原子性？<br>当发生错误时，有可能会直接导致整个事务不运行，但也有可能会执行事务中的某些命令，取决于错误的类型。</p>
-</blockquote>
-<ul>
-<li>编译型异常（代码有问题，命令有错，输入时即报错），事务中的所有命令都不执行</li>
-<li>运行时异常（I/O），如果输入命令时没有报错，待命令执行时才报错，那么其他正常的命令会继续执行</li>
-</ul>
-<h5 id="Redis持久化"><a href="#Redis持久化" class="headerlink" title="Redis持久化"></a>Redis持久化</h5><p>持久化包含两种方式，RDB（Redis DataBase）和AOF（Append Only File）</p>
-<h6 id="RDB"><a href="#RDB" class="headerlink" title="RDB"></a>RDB</h6><p>在指定时间内将内存快照保存下来，替换旧的快照</p>
-<h6 id="AOF"><a href="#AOF" class="headerlink" title="AOF"></a>AOF</h6><p>当达到某个条件后，把一系列命令以追加的方式写入日志文件中</p>
-<h5 id="Redis发布订阅"><a href="#Redis发布订阅" class="headerlink" title="Redis发布订阅"></a>Redis发布订阅</h5><p>包含两个角色，发布者和订阅者，内部机制是当订阅者订阅时，Redis会新建一个key保存该频道，频道的value保存着所有订阅者。发布者发布内容写入频道后，频道通知所有订阅者</p>
-<h5 id="Redis主从复制"><a href="#Redis主从复制" class="headerlink" title="Redis主从复制"></a>Redis主从复制</h5><h6 id="一主二从"><a href="#一主二从" class="headerlink" title="一主二从"></a>一主二从</h6><p>主-从<br>   -从<br>一个主机，两个从机，主机负责处理写操作，而从机只能读。<br>成为从机后，主机会将数据全量复制到从机中，而后会以增量复制的形式复制到从机。<br>主机宕机后，不会自动切换</p>
-<h6 id="层层链路"><a href="#层层链路" class="headerlink" title="层层链路"></a>层层链路</h6><p>主-从-从<br>实际上中间的服务器还是从机，第三个服务器为第二个服务器的从机，第三个服务器还是可以从第二个服务器获取数据。</p>
-<h6 id="哨兵模式"><a href="#哨兵模式" class="headerlink" title="哨兵模式"></a>哨兵模式</h6><p>设置哨兵进程去监控主机和从机状态，当主机宕机后，会根据内部的算法机制推举出新的主机，让从机成为主机，当原来的主机恢复后，此时也只能成为现有主机的从机。<br>在实际场景中，为了防止哨兵进程死掉，会同时运行多个哨兵进程，哨兵进程不仅监视所有的主从机，另外还会互相监控。选举时，以票数多的作为新的主机。</p>
-<h5 id="Redis缓存穿透和雪崩"><a href="#Redis缓存穿透和雪崩" class="headerlink" title="Redis缓存穿透和雪崩"></a>Redis缓存穿透和雪崩</h5><h6 id="缓存穿透"><a href="#缓存穿透" class="headerlink" title="缓存穿透"></a>缓存穿透</h6><p>当用户请求数据时，会先经过缓存，如果此时缓存中没有该数据则会去请求数据库，如果此时请求的量过大，那么数据库可能无法承受这个压力<br>解决方案：</p>
-<ul>
-<li>布隆过滤器</li>
-<li>缓存空对象</li>
-</ul>
-<h6 id="缓存击穿"><a href="#缓存击穿" class="headerlink" title="缓存击穿"></a>缓存击穿</h6><p>当一个热点数据过期时，在key失效的那个瞬间，大量的请求会直接去请求数据库，此时会给数据库带来巨大压力<br>解决方案：</p>
-<ul>
-<li>设置永不过期</li>
-<li>加互斥锁</li>
-</ul>
-<h6 id="雪崩"><a href="#雪崩" class="headerlink" title="雪崩"></a>雪崩</h6><p>某个特定时间，key集体过期或者Redis宕机<br>解决方案：</p>
-<ul>
-<li>Redis高可用（异地多活）</li>
-<li>限流降级</li>
-<li>数据预热</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1164,7 +1363,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-count">19</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1177,7 +1376,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-count">11</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

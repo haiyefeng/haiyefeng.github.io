@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Pisces","version":"7.7.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="title: mongodb基础date: 2021-03-07 23:27:28categories:    - 中间件tags:    - mongodb mongodbmongodb简介mongodb体系结构![](mongodb基础&#x2F;20210223113844925_22479.png &#x3D;733x)![](mongodb基础&#x2F;20210223113902496_7876.png &#x3D;826">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mongodb基础">
+<meta property="og:url" content="http://yoursite.com/2021/03/07/mongodb%E5%9F%BA%E7%A1%80/index.html">
+<meta property="og:site_name" content="码上有解">
+<meta property="og:description" content="title: mongodb基础date: 2021-03-07 23:27:28categories:    - 中间件tags:    - mongodb mongodbmongodb简介mongodb体系结构![](mongodb基础&#x2F;20210223113844925_22479.png &#x3D;733x)![](mongodb基础&#x2F;20210223113902496_7876.png &#x3D;826">
+<meta property="article:published_time" content="2021-03-07T15:18:18.117Z">
+<meta property="article:modified_time" content="2021-03-07T15:31:56.902Z">
+<meta property="article:author" content="Haiyefeng">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2021/03/07/mongodb%E5%9F%BA%E7%A1%80/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>mongodb基础 | 码上有解</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">码上有解</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-history"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-list"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/03/07/mongodb%E5%9F%BA%E7%A1%80/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/a.jpg">
+      <meta itemprop="name" content="Haiyefeng">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="码上有解">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          mongodb基础
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-03-07 23:18:18 / 修改时间：23:31:56" itemprop="dateCreated datePublished" datetime="2021-03-07T23:18:18+08:00">2021-03-07</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>title: mongodb基础<br>date: 2021-03-07 23:27:28<br>categories:<br>    - 中间件<br>tags:<br>    - mongodb</p>
+<h1 id="mongodb"><a href="#mongodb" class="headerlink" title="mongodb"></a>mongodb</h1><h2 id="mongodb简介"><a href="#mongodb简介" class="headerlink" title="mongodb简介"></a>mongodb简介</h2><h3 id="mongodb体系结构"><a href="#mongodb体系结构" class="headerlink" title="mongodb体系结构"></a>mongodb体系结构</h3><p>![](mongodb基础/20210223113844925_22479.png =733x)<br>![](mongodb基础/20210223113902496_7876.png =826x)</p>
+<h3 id="数据模型"><a href="#数据模型" class="headerlink" title="数据模型"></a>数据模型</h3><p>MongoDB的最小存储单位就是文档(document)对象。文档(document)对象对应于关系型数据库的行。数据在MongoDB中以<br>BSON（Binary-JSON）文档的格式存储在磁盘上。<br>BSON数据类型参考列表：<br>![](mongodb基础/20210223114012166_24106.png =815x)</p>
+<h3 id="MongoDB的特点"><a href="#MongoDB的特点" class="headerlink" title="MongoDB的特点"></a>MongoDB的特点</h3><p>（1）高性能：<br>MongoDB提供高性能的数据持久性。对嵌入式数据模型的支持减少了数据库系统上的I/O活动。索引支持更快的查询，并且可以包含来自嵌入式文档和数组的键。（文本索引解决搜索的需求、TTL索引解决历史数据自动过期的需求、地理位置索引可用于构建各种 O2O 应用）<br>mmapv1、wiredtiger、mongorocks（rocksdb）、in-memory 等多引擎支持满足各种场景需求。Gridfs解决文件存储的需求。<br>（2）高可用性：<br>MongoDB的复制工具称为副本集（replica set），它可提供自动故障转移和数据冗余。<br>（3）高扩展性：<br>MongoDB提供了水平可扩展性作为其核心功能的一部分。<br>分片将数据分布在一组集群的机器上。（海量数据存储，服务能力水平扩展）<br>从3.4开始，MongoDB支持基于片键创建数据区域。在一个平衡的集群中，MongoDB将一个区域所覆盖的读写只定向到该区域内的那些片。<br>（4）丰富的查询支持：<br>MongoDB支持丰富的查询语言，支持读和写操作(CRUD)，比如数据聚合、文本搜索和地理空间查询等。<br>（5）其他特点：<br>如无模式（动态模式）、灵活的文档模型</p>
+<h3 id="mongodb常用命令"><a href="#mongodb常用命令" class="headerlink" title="mongodb常用命令"></a>mongodb常用命令</h3><h4 id="连接、关闭等相关命令"><a href="#连接、关闭等相关命令" class="headerlink" title="连接、关闭等相关命令"></a>连接、关闭等相关命令</h4><p>关闭服务命令：<br>（1）快速关闭方法（快速，简单，数据可能会出错）<br>目标：通过系统的kill命令直接杀死进程：<br>杀完要检查一下，避免有的没有杀掉</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#通过进程编号关闭节点</span><br><span class="line">kill -2 54410</span><br></pre></td></tr></table></figure>
+<p>如果一旦是因为数据损坏，则需要进行如下操作（了解）：<br>1）删除lock文件：<br><code>rm -f /mongodb/single/data/db/*.lock</code><br>2）修复数据：<br><code>/usr/local/mongodb/bin/mongod --repair --dbpath=/mongodb/single/data/db</code><br>（2）标准的关闭方法（数据不容易出错，但麻烦）：<br>目标：通过mongo客户端中的shutdownServer命令来关闭服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;客户端登录服务，注意，这里通过localhost登录，如果需要远程登录，必须先登录认证才行。</span><br><span class="line">mongo --port 27017</span><br><span class="line">&#x2F;&#x2F;#切换到admin库</span><br><span class="line">use admin</span><br><span class="line">&#x2F;&#x2F;关闭服务</span><br><span class="line">db.shutdownServer()</span><br></pre></td></tr></table></figure>
+<h4 id="增删改查相关命令"><a href="#增删改查相关命令" class="headerlink" title="增删改查相关命令"></a>增删改查相关命令</h4><p>选择切换数据库：use articledb<br>插入数据：db.comment.insert({bson数据})<br>查询所有数据：db.comment.find();<br>条件查询数据：db.comment.find({条件})<br>查询符合条件的第一条记录：db.comment.findOne({条件})<br>查询符合条件的前几条记录：db.comment.find({条件}).limit(条数)<br>查询符合条件的跳过的记录：db.comment.find({条件}).skip(条数)<br>修改数据：db.comment.update({条件},{修改后的数据}) 或db.comment.update({条件},{$set:{要修改部分的字段:数据})，批量修改加参数{multi:true}<br>修改数据并自增某字段值：db.comment.update({条件},{$inc:{自增的字段:步进值}})<br>删除数据：db.comment.remove({条件})<br>统计查询：db.comment.count({条件})<br>模糊查询：db.comment.find({字段名:/正则表达式/})<br>条件比较运算：db.comment.find({字段名:{$gt:值}})<br>包含查询：db.comment.find({字段名:{$in:[值1，值2]}})或db.comment.find({字段名:{$nin:[值1，值2]}})<br>条件连接查询：db.comment.find({$and:[{条件1},{条件2}]})或db.comment.find({$or:[{条件1},{条件2}]})</p>
+<h3 id="索引-Index"><a href="#索引-Index" class="headerlink" title="索引-Index"></a>索引-Index</h3><p>MongoDB索引使用B树数据结构（确切的说是B-Tree，MySQL是B+Tree）</p>
+<h4 id="索引的分类"><a href="#索引的分类" class="headerlink" title="索引的分类"></a>索引的分类</h4><h5 id="单字段索引"><a href="#单字段索引" class="headerlink" title="单字段索引"></a>单字段索引</h5><p>MongoDB支持在文档的单个字段上创建用户定义的升序/降序索引，称为单字段索引（Single Field Index）。<br>于单个字段索引和排序操作，索引键的排序顺序（即升序或降序）并不重要，因为MongoDB可以在任何方向上遍历索引。</p>
+<h5 id="复合索引"><a href="#复合索引" class="headerlink" title="复合索引"></a>复合索引</h5><p>MongoDB还支持多个字段的用户定义索引，即复合索引（Compound Index）。<br>复合索引中列出的字段顺序具有重要意义。例如，如果复合索引由 { userid: 1, score: -1 } 组成，则索引首先按userid正序排序，然后<br>在每个userid的值内，再在按score倒序排序。</p>
+<h5 id="其他索引"><a href="#其他索引" class="headerlink" title="其他索引"></a>其他索引</h5><p>地理空间索引（Geospatial Index）、文本索引（Text Indexes）、哈希索引（Hashed Indexes）。<br>地理空间索引（Geospatial Index）<br>为了支持对地理空间坐标数据的有效查询，MongoDB提供了两种特殊的索引：返回结果时使用平面几何的二维索引和返回结果时使用球面几何的二维球面索引。<br>文本索引（Text Indexes）<br>MongoDB提供了一种文本索引类型，支持在集合中搜索字符串内容。这些文本索引不存储特定于语言的停止词（例如“the”、“a”、“or”），而将集合中的词作为词干，只存储根词<br>哈希索引（Hashed Indexes）<br>为了支持基于散列的分片，MongoDB提供了散列索引类型，它对字段值的散列进行索引。这些索引在其范围内的值分布更加随机，但只支持相等匹配，不支持基于范围的查询。</p>
+<h4 id="索引的管理操作"><a href="#索引的管理操作" class="headerlink" title="索引的管理操作"></a>索引的管理操作</h4><p>查看一个集合的所有索引 db.collection.getIndexes()<br>在集合上创建索引 db.collection.createIndex(keys, options)<br>![索引可选项](mongodb基础/20210225114632900_11484.png =860x)<br>移除指定的索引，或移除所有索引 db.collection.dropIndex(index)、db.collection.dropIndexes()【_id默认索引不会被删除】</p>
+<h4 id="查询性能"><a href="#查询性能" class="headerlink" title="查询性能"></a>查询性能</h4><p>分析查询性能（Analyze Query Performance）通常使用执行计划（解释计划、Explain Plan）来查看查询的情况，如查询耗费的时间、是否基于索引查询等。<br>db.collection.find(query,options).explain(options)<br>![](mongodb基础/20210225115421144_17821.png =704x)<br>所以参数为：”stage” : “IXSCAN”</p>
+<h2 id="django使用mongodb"><a href="#django使用mongodb" class="headerlink" title="django使用mongodb"></a>django使用mongodb</h2><h3 id="安装djongo"><a href="#安装djongo" class="headerlink" title="安装djongo"></a>安装djongo</h3><p>pip install djongo</p>
+<h3 id="配置settings"><a href="#配置settings" class="headerlink" title="配置settings"></a>配置settings</h3><p>DATABASES = {<br>    ‘default’: {<br>        ‘ENGINE’: ‘djongo’,<br>        ‘ENFORCE_SCHEMA’: True,<br>        ‘NAME’: ‘comment’,   # 库名<br>        ‘CLIENT’: {<br>            ‘host’: ‘127.0.0.1’,<br>        }<br>    }<br>}</p>
+<h3 id="新建app"><a href="#新建app" class="headerlink" title="新建app"></a>新建app</h3><p>python manage.py startapp test_mon</p>
+<h3 id="新建模型及函数、路由"><a href="#新建模型及函数、路由" class="headerlink" title="新建模型及函数、路由"></a>新建模型及函数、路由</h3><p>models.py</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">from django.db import models</span><br><span class="line"></span><br><span class="line"># Create your models here.</span><br><span class="line">from djongo import models</span><br><span class="line"></span><br><span class="line">class Blog(models.Model):</span><br><span class="line">    name &#x3D; models.CharField(max_length&#x3D;100)</span><br><span class="line"></span><br><span class="line">    class Meta:</span><br><span class="line">        abstract &#x3D; True</span><br><span class="line"></span><br><span class="line">class Entry(models.Model):</span><br><span class="line">    blog &#x3D; models.EmbeddedField(</span><br><span class="line">        model_container&#x3D;Blog</span><br><span class="line">    )</span><br><span class="line">    headline &#x3D; models.CharField(max_length&#x3D;255)</span><br></pre></td></tr></table></figure>
+<p>views.py</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">from test_mon.models import Entry</span><br><span class="line">from django.http.response import HttpResponse</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def test(request):</span><br><span class="line">    e &#x3D; Entry()</span><br><span class="line">    e.blog &#x3D; &#123;</span><br><span class="line">        &#39;name&#39;: &#39;Djongo&#39;</span><br><span class="line">    &#125;</span><br><span class="line">    e.headline &#x3D; &#39;The Django MongoDB connector&#39;</span><br><span class="line">    e.save()</span><br><span class="line">    return HttpResponse()</span><br></pre></td></tr></table></figure>
+
+<p>urls.py</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">from django.contrib import admin</span><br><span class="line">from django.urls import path</span><br><span class="line">from test_mon import views</span><br><span class="line"></span><br><span class="line">urlpatterns &#x3D; [</span><br><span class="line">    path(&#39;admin&#x2F;&#39;, admin.site.urls),</span><br><span class="line">    path(&#39;test&#x2F;&#39;, views.test),</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+<p>访问127.0.0.1/test/<br>mongo compass查看集合<br>![](mongodb基础/20210225150738553_13245.png =921x)</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/02/22/hello-world/" rel="prev" title="欢迎 来到码上有解">
+      <i class="fa fa-chevron-left"></i> 欢迎 来到码上有解
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/03/07/mongodb%E9%9B%86%E7%BE%A4/" rel="next" title="mongodb集群">
+      mongodb集群 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#mongodb"><span class="nav-number">1.</span> <span class="nav-text">mongodb</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#mongodb简介"><span class="nav-number">1.1.</span> <span class="nav-text">mongodb简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#mongodb体系结构"><span class="nav-number">1.1.1.</span> <span class="nav-text">mongodb体系结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据模型"><span class="nav-number">1.1.2.</span> <span class="nav-text">数据模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MongoDB的特点"><span class="nav-number">1.1.3.</span> <span class="nav-text">MongoDB的特点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mongodb常用命令"><span class="nav-number">1.1.4.</span> <span class="nav-text">mongodb常用命令</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#连接、关闭等相关命令"><span class="nav-number">1.1.4.1.</span> <span class="nav-text">连接、关闭等相关命令</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#增删改查相关命令"><span class="nav-number">1.1.4.2.</span> <span class="nav-text">增删改查相关命令</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#索引-Index"><span class="nav-number">1.1.5.</span> <span class="nav-text">索引-Index</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#索引的分类"><span class="nav-number">1.1.5.1.</span> <span class="nav-text">索引的分类</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#单字段索引"><span class="nav-number">1.1.5.1.1.</span> <span class="nav-text">单字段索引</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#复合索引"><span class="nav-number">1.1.5.1.2.</span> <span class="nav-text">复合索引</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#其他索引"><span class="nav-number">1.1.5.1.3.</span> <span class="nav-text">其他索引</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#索引的管理操作"><span class="nav-number">1.1.5.2.</span> <span class="nav-text">索引的管理操作</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#查询性能"><span class="nav-number">1.1.5.3.</span> <span class="nav-text">查询性能</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#django使用mongodb"><span class="nav-number">1.2.</span> <span class="nav-text">django使用mongodb</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#安装djongo"><span class="nav-number">1.2.1.</span> <span class="nav-text">安装djongo</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置settings"><span class="nav-number">1.2.2.</span> <span class="nav-text">配置settings</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#新建app"><span class="nav-number">1.2.3.</span> <span class="nav-text">新建app</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#新建模型及函数、路由"><span class="nav-number">1.2.4.</span> <span class="nav-text">新建模型及函数、路由</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Haiyefeng"
+      src="/images/a.jpg">
+  <p class="site-author-name" itemprop="name">Haiyefeng</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Haiyefeng</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

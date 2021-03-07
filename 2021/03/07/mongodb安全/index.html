@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Pisces","version":"7.7.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="title: mongodb安全date: 2021-03-07 23:27:28categories:    - 中间件tags:    - mongodb 安全认证MongoDB的用户和角色权限简介默认情况下，MongoDB实例启动运行时是没有启用用户访问权限控制的。为了能保障mongodb的安全可以做以下几个步骤：1）使用新的端口，默认的27017端口如果一旦知道了ip就能连接上，不太安全2">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mongodb安全">
+<meta property="og:url" content="http://yoursite.com/2021/03/07/mongodb%E5%AE%89%E5%85%A8/index.html">
+<meta property="og:site_name" content="码上有解">
+<meta property="og:description" content="title: mongodb安全date: 2021-03-07 23:27:28categories:    - 中间件tags:    - mongodb 安全认证MongoDB的用户和角色权限简介默认情况下，MongoDB实例启动运行时是没有启用用户访问权限控制的。为了能保障mongodb的安全可以做以下几个步骤：1）使用新的端口，默认的27017端口如果一旦知道了ip就能连接上，不太安全2">
+<meta property="article:published_time" content="2021-03-07T15:18:43.797Z">
+<meta property="article:modified_time" content="2021-03-07T15:31:59.056Z">
+<meta property="article:author" content="Haiyefeng">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2021/03/07/mongodb%E5%AE%89%E5%85%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>mongodb安全 | 码上有解</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">码上有解</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-history"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-list"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/03/07/mongodb%E5%AE%89%E5%85%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/a.jpg">
+      <meta itemprop="name" content="Haiyefeng">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="码上有解">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          mongodb安全
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-03-07 23:18:43 / 修改时间：23:31:59" itemprop="dateCreated datePublished" datetime="2021-03-07T23:18:43+08:00">2021-03-07</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>title: mongodb安全<br>date: 2021-03-07 23:27:28<br>categories:<br>    - 中间件<br>tags:<br>    - mongodb</p>
+<h1 id="安全认证"><a href="#安全认证" class="headerlink" title="安全认证"></a>安全认证</h1><h2 id="MongoDB的用户和角色权限简介"><a href="#MongoDB的用户和角色权限简介" class="headerlink" title="MongoDB的用户和角色权限简介"></a>MongoDB的用户和角色权限简介</h2><p>默认情况下，MongoDB实例启动运行时是没有启用用户访问权限控制的。<br>为了能保障mongodb的安全可以做以下几个步骤：<br>1）使用新的端口，默认的27017端口如果一旦知道了ip就能连接上，不太安全<br>2）设置mongodb的网络环境，最好将mongodb部署到公司服务器内网，这样外网是访问不到的。公司内部访问使用vpn等<br>3）开启安全认证。认证要同时设置服务器之间的内部认证方式，同时要设置客户端连接到集群的账号密码认证方式<br>为了强制开启用户访问控制(用户验证)，则需要在MongoDB实例启动时<strong>使用选项 –auth</strong> 或在指定<strong>启动配置文件中添加选项 auth=true</strong></p>
+<h3 id="启用访问控制"><a href="#启用访问控制" class="headerlink" title="启用访问控制"></a>启用访问控制</h3><p>MongoDB使用的是基于角色的访问控制(Role-Based Access Control,RBAC)来管理用户对实例的访问。通过对用户授予一个或多个角色来控制用户访问数据库资源的权限和数据库操作的权限，在对用户分配角色之前，用户无法访问实例。<br>启用权限的方法：<br>1.在实例启动时添加选项 –auth<br>2.指定启动配置文件中添加选项 auth=true</p>
+<h3 id="角色"><a href="#角色" class="headerlink" title="角色"></a>角色</h3><p>在MongoDB中通过角色对用户授予相应数据库资源的操作权限，每个角色当中的权限可以显式指定，也可以通过继承其他角色的权限，或者两种都存在的权限。</p>
+<h3 id="权限"><a href="#权限" class="headerlink" title="权限"></a>权限</h3><p>权限由指定的数据库资源(resource)以及允许在指定资源上进行的操作(action)组成。</p>
+<ol>
+<li>资源(resource)包括：数据库、集合、部分集合和集群</li>
+<li>操作(action)包括：对资源进行的增、删、改、查(CRUD)操作<br>在角色定义时可以包含一个或多个已存在的角色，新创建的角色会继承包含的角色所有的权限。在同一个数据库中，新创建角色可以继承其他角色的权限，在 admin 数据库中创建的角色可以继承在其它任意数据库中角色的权限。<h4 id="查询命令"><a href="#查询命令" class="headerlink" title="查询命令"></a>查询命令</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 查询所有角色权限(仅用户自定义角色)</span><br><span class="line">&gt; db.runCommand(&#123; rolesInfo: 1 &#125;)</span><br><span class="line">&#x2F;&#x2F; 查询所有角色权限(包含内置角色)</span><br><span class="line">&gt; db.runCommand(&#123; rolesInfo: 1, showBuiltinRoles: true &#125;)</span><br><span class="line">&gt; &#x2F;&#x2F; 查询当前数据库中的某角色的权限</span><br><span class="line">&gt; db.runCommand(&#123; rolesInfo: &quot;&lt;rolename&gt;&quot; &#125;)</span><br><span class="line">&#x2F;&#x2F; 查询其它数据库中指定的角色权限</span><br><span class="line">&gt; db.runCommand(&#123; rolesInfo: &#123; role: &quot;&lt;rolename&gt;&quot;, db: &quot;&lt;database&gt;&quot; &#125; &#125;</span><br><span class="line">&#x2F;&#x2F; 查询多个角色权限</span><br><span class="line">&gt; db.runCommand(</span><br><span class="line">    &#123;</span><br><span class="line">        rolesInfo: [</span><br><span class="line">            &quot;&lt;rolename&gt;&quot;,</span><br><span class="line">            &#123; role: &quot;&lt;rolename&gt;&quot;, db: &quot;&lt;database&gt;&quot; &#125;,</span><br><span class="line">            ...</span><br><span class="line">        ]</span><br><span class="line">    &#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<h4 id="常用的内置角色"><a href="#常用的内置角色" class="headerlink" title="常用的内置角色"></a>常用的内置角色</h4></li>
+</ol>
+<ul>
+<li>数据库用户角色：read、readWrite</li>
+<li>所有数据库用户角色：readAnyDatabase、readWriteAnyDatabase、userAdminAnyDatabase、dbAdminAnyDatabase</li>
+<li>数据库管理角色：dbAdmin、dbOwner、userAdmin</li>
+<li>集群管理角色：clusterAdmin、clusterManager、clusterMonitor、hostManager</li>
+<li>备份恢复角色：backup、restore</li>
+<li>超级用户角色：root</li>
+<li>内部角色：system<h4 id="角色说明"><a href="#角色说明" class="headerlink" title="角色说明"></a>角色说明</h4><table>
+<thead>
+<tr>
+<th>角色</th>
+<th>权限描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>read</td>
+<td>可以读取指定数据库中任何数据</td>
+</tr>
+<tr>
+<td>readWrite</td>
+<td>可以读写指定数据库中任何数据，包括创建、重命名、删除集合</td>
+</tr>
+<tr>
+<td>readAnyDatabase</td>
+<td>可以读取所有数据库中任何数据(除了数据库config和local之外)</td>
+</tr>
+<tr>
+<td>readWriteAnyDatabase</td>
+<td>可以读写所有数据库中任何数据(除了数据库config和local之外)</td>
+</tr>
+<tr>
+<td>userAdminAnyDatabase</td>
+<td>可以在指定数据库创建和修改用户(除了数据库config和local之外)</td>
+</tr>
+<tr>
+<td>dbAdminAnyDatabase</td>
+<td>可以读取任何数据库以及对数据库进行清理、修改、压缩、获取统计信息、执行检查等操作(除了数据库config和local之外)</td>
+</tr>
+<tr>
+<td>dbAdmin</td>
+<td>可以读取指定数据库以及对数据库进行清理、修改、压缩、获取统计信息、执行检查等操作</td>
+</tr>
+<tr>
+<td>userAdmin</td>
+<td>可以在指定数据库创建和修改用户</td>
+</tr>
+<tr>
+<td>clusterAdmin</td>
+<td>可以对整个集群或数据库系统进行管理操作</td>
+</tr>
+<tr>
+<td>backup</td>
+<td>备份MongoDB数据最小的权限</td>
+</tr>
+<tr>
+<td>restore</td>
+<td>从备份文件中还原恢复MongoDB数据(除了system.profile集合)的权限</td>
+</tr>
+<tr>
+<td>root</td>
+<td>超级账号，超级权限</td>
+</tr>
+<tr>
+<td>## 单实例环境</td>
+<td></td>
+</tr>
+<tr>
+<td>目标：对单实例的MongoDB服务开启安全认证，这里的单实例指的是未开启副本集或分片的MongoDB实例</td>
+<td></td>
+</tr>
+<tr>
+<td>### 添加用户和权限</td>
+<td></td>
+</tr>
+<tr>
+<td>1）先按未开启认证的方式启动mongod服务（在操作用户时，启动mongod服务时尽量不要开启授权）</td>
+<td></td>
+</tr>
+<tr>
+<td>2）使用Mongo客户端登录</td>
+<td></td>
+</tr>
+<tr>
+<td><code>C:\Users\fortune&gt;mongo --host 127.0.01 --port 27017 # 配置了环境变量后不需要再输入具体路径</code></td>
+<td></td>
+</tr>
+<tr>
+<td>3）创建两个管理员用户，一个是系统的超级管理员 myroot ，一个是admin库的管理用户myadmin</td>
+<td></td>
+</tr>
+<tr>
+<td><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">&gt; use admin</span><br><span class="line">switched to db admin</span><br><span class="line"># 创建系统超级用户 myroot,设置密码123456，设置角色root</span><br><span class="line">&gt; db.createUser(&#123;user:&quot;myroot&quot;,pwd:&quot;123456&quot;,roles:[&#123;role:&quot;root&quot;,db:&quot;admin&quot;&#125;]&#125;)</span><br><span class="line">Successfully added user: &#123;</span><br><span class="line">        &quot;user&quot; : &quot;myroot&quot;,</span><br><span class="line">        &quot;roles&quot; : [</span><br><span class="line">                &#123;</span><br><span class="line">                        &quot;role&quot; : &quot;root&quot;,</span><br><span class="line">                        &quot;db&quot; : &quot;admin&quot;</span><br><span class="line">                &#125;</span><br><span class="line">        ]</span><br><span class="line">&#125;</span><br><span class="line"># 创建专门用来管理admin库的账号myadmin，只用来作为用户权限的管理</span><br><span class="line">&gt;  db.createUser(&#123;user:&quot;myadmin&quot;,pwd:&quot;123456&quot;,roles:[&#123;role:&quot;userAdminAnyDatabase&quot;,db:&quot;admin&quot;&#125;]&#125;)</span><br><span class="line">Successfully added user: &#123;</span><br><span class="line">        &quot;user&quot; : &quot;myadmin&quot;,</span><br><span class="line">        &quot;roles&quot; : [</span><br><span class="line">                &#123;</span><br><span class="line">                        &quot;role&quot; : &quot;userAdminAnyDatabase&quot;,</span><br><span class="line">                        &quot;db&quot; : &quot;admin&quot;</span><br><span class="line">                &#125;</span><br><span class="line">        ]</span><br><span class="line">&#125;</span><br><span class="line">1）本案例创建了两个用户，分别对应超管和专门用来管理用户的角色，如果对安全要求很高，防止超管泄漏，则不要创建超管用户。</span><br><span class="line">2）和其它数据库（MySQL）一样，权限的管理都差不多一样，也是将用户和权限信息保存到数据库对应的表中。Mongodb存储所有的用户信息在admin 数据库的集合system.users中，保存用户名、密码和数据库信息。</span><br><span class="line">3）如果不指定数据库，则创建的指定的权限的用户在所有的数据库上有效，如 &#123;role:&quot;userAdminAnyDatabase&quot;, db:&quot;&quot;&#125;</span><br></pre></td></tr></table></figure></td>
+<td></td>
+</tr>
+<tr>
+<td>4）认证测试</td>
+<td></td>
+</tr>
+<tr>
+<td><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&gt; db.auth(&quot;myroot&quot;, &quot;234&quot;)</span><br><span class="line">Error: Authentication failed.</span><br><span class="line">0</span><br><span class="line">&gt; db.auth(&quot;myroot&quot;, &quot;123456&quot;)</span><br><span class="line">1</span><br></pre></td></tr></table></figure></td>
+<td></td>
+</tr>
+<tr>
+<td>5）创建普通用户</td>
+<td></td>
+</tr>
+<tr>
+<td>创建普通用户可以在没有开启认证的时候添加，也可以在开启认证之后添加，但开启认证之后，必须使用有操作admin库的用户登录认证后才能操作。底层都是将用户信息保存在了admin数据库的集合system.users中。</td>
+<td></td>
+</tr>
+<tr>
+<td><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"># 创建(切换)将来要操作的数据库articledb</span><br><span class="line">&gt; use articledb</span><br><span class="line">switched to db articledb</span><br><span class="line"># 创建用户，拥有articledb数据库的读写权限readWrite，密码是123456</span><br><span class="line">&gt; db.createUser(&#123;user:&quot;bobo&quot;,pwd:&quot;123456&quot;,roles:[&#123;role:&quot;readWrite&quot;,db:&quot;articledb&quot;&#125;]&#125;)</span><br><span class="line">Successfully added user: &#123;</span><br><span class="line">        &quot;user&quot; : &quot;bobo&quot;,</span><br><span class="line">        &quot;roles&quot; : [</span><br><span class="line">                &#123;</span><br><span class="line">                        &quot;role&quot; : &quot;readWrite&quot;,</span><br><span class="line">                        &quot;db&quot; : &quot;articledb&quot;</span><br><span class="line">                &#125;</span><br><span class="line">        ]</span><br><span class="line">&#125;</span><br><span class="line"># 测试是否可用</span><br><span class="line">&gt; db.auth(&quot;bobo&quot;,&quot;123456&quot;)</span><br><span class="line">1</span><br><span class="line"># 如果开启了认证后，登录的客户端的用户必须使用admin库的角色，如拥有root角色的myadmin用户，再通过myadmin用户去创建其他角色的用户</span><br></pre></td></tr></table></figure></td>
+<td></td>
+</tr>
+<tr>
+<td>### 服务端开启认证和客户端连接登录</td>
+<td></td>
+</tr>
+<tr>
+<td>（1）关闭已经启动的服务</td>
+<td></td>
+</tr>
+<tr>
+<td>1）使用linux命令杀死进程：kill -2 进程id</td>
+<td></td>
+</tr>
+<tr>
+<td>2）在mongo客户端中使用shutdownServer命令来关闭</td>
+<td></td>
+</tr>
+<tr>
+<td><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt; use admin</span><br><span class="line">switched to db admin</span><br><span class="line">&gt; db.shutdownServer()</span><br><span class="line">server should be down...</span><br></pre></td></tr></table></figure></td>
+<td></td>
+</tr>
+<tr>
+<td>需要几个条件：</td>
+<td></td>
+</tr>
+<tr>
+<td>必须是在admin库下执行该关闭服务命令。</td>
+<td></td>
+</tr>
+<tr>
+<td>如果没有开启认证，必须是从localhost登陆的，才能执行关闭服务命令。</td>
+<td></td>
+</tr>
+<tr>
+<td>非localhost的、通过远程登录的，必须有登录且必须登录用户有对admin操作权限才可以。</td>
+<td></td>
+</tr>
+<tr>
+<td>![服务已关闭](mongodb安全/20210307175504040_14204.png =800x)</td>
+<td></td>
+</tr>
+<tr>
+<td>（2）以开启认证的方式启动服务</td>
+<td></td>
+</tr>
+<tr>
+<td>有两种方式开启权限认证启动服务：一种是参数方式，一种是配置文件方式。</td>
+<td></td>
+</tr>
+<tr>
+<td>1）参数方式</td>
+<td></td>
+</tr>
+<tr>
+<td>在启动时指定参数 –auth ，如：</td>
+<td></td>
+</tr>
+<tr>
+<td><code>C:\Users\fortune&gt;mongod -f D:\software\MongoDB\Server\4.4\bin\mongod.cfg --auth</code></td>
+<td></td>
+</tr>
+<tr>
+<td>2）配置文件方式</td>
+<td></td>
+</tr>
+<tr>
+<td>在mongod.conf配置文件中加入：</td>
+<td></td>
+</tr>
+<tr>
+<td><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">security:</span><br><span class="line">#开启授权认证</span><br><span class="line">authorization: enabled</span><br></pre></td></tr></table></figure></td>
+<td></td>
+</tr>
+<tr>
+<td>（3）开启了认证的情况下的客户端登录</td>
+<td></td>
+</tr>
+<tr>
+<td>有两种认证方式，一种是先登录，在mongo shell中认证；一种是登录时直接认证。</td>
+<td></td>
+</tr>
+<tr>
+<td>1）先连接再认证</td>
+<td></td>
+</tr>
+<tr>
+<td><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">C:\Users\fortune&gt;mongo --host 127.0.0.1 --port 27017</span><br><span class="line">MongoDB shell version v4.4.4</span><br><span class="line">connecting to: mongodb:&#x2F;&#x2F;127.0.0.1:27017&#x2F;?compressors&#x3D;disabled&amp;gssapiServiceName&#x3D;mongodb</span><br><span class="line">Implicit session: session &#123; &quot;id&quot; : UUID(&quot;57762763-de3b-4c20-a039-cbdbac46f73e&quot;) &#125;</span><br><span class="line">MongoDB server version: 4.4.4</span><br><span class="line"># 开启认证后再登录，发现打印的日志比较少了，查询发现需要认证</span><br><span class="line">&gt; use articledb</span><br><span class="line">switched to db articledb</span><br><span class="line">&gt; db.comment.find()</span><br><span class="line">Error: error: &#123;</span><br><span class="line">        &quot;ok&quot; : 0,</span><br><span class="line">        &quot;errmsg&quot; : &quot;command find requires authentication&quot;,</span><br><span class="line">        &quot;code&quot; : 13,</span><br><span class="line">        &quot;codeName&quot; : &quot;Unauthorized&quot;</span><br><span class="line">&#125;</span><br><span class="line"># 登录后可查询（注意如果是某个库的账户，则需要切换到相应的库才能登录）</span><br><span class="line">&gt; db.auth(&quot;bobo&quot;,&quot;123456&quot;)</span><br><span class="line">1</span><br><span class="line">&gt; db.comment.find()</span><br><span class="line">&#123; &quot;_id&quot; : ObjectId(&quot;6035f32c84d79aa3b5c668a6&quot;), &quot;articleid&quot; : &quot;100000&quot;, &quot;content&quot; : &quot;今天天气真好，阳光明媚&quot;, &quot;userid&quot; : &quot;1001&quot;, &quot;nickname&quot; : &quot;Rose&quot;, &quot;createdatetime&quot; : ISODate(&quot;2021-02-24T06:33:16.430Z&quot;), &quot;likenum&quot; : 10, &quot;state&quot; : null &#125;</span><br><span class="line">&gt;</span><br></pre></td></tr></table></figure></td>
+<td></td>
+</tr>
+<tr>
+<td>2）连接时直接认证</td>
+<td></td>
+</tr>
+<tr>
+<td><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">C:\Users\fortune&gt;mongo --host 127.0.0.1 --port 27017 --authenticationDatabase admin -u myroot -p 123456</span><br><span class="line">MongoDB shell version v4.4.4</span><br><span class="line">connecting to: mongodb:&#x2F;&#x2F;127.0.0.1:27017&#x2F;?authSource&#x3D;admin&amp;compressors&#x3D;disabled&amp;gssapiServiceName&#x3D;mongodb</span><br><span class="line">Implicit session: session &#123; &quot;id&quot; : UUID(&quot;70ce5f1d-1142-4a2e-9aac-76f3894a2b3c&quot;) &#125;</span><br><span class="line">MongoDB server version: 4.4.4</span><br><span class="line">Free Monitoring URL:</span><br><span class="line">https:&#x2F;&#x2F;cloud.mongodb.com&#x2F;freemonitoring&#x2F;cluster&#x2F;D3UMZIVRJRGJPUFODCYILDIKRKCTTV3X</span><br><span class="line">&gt; db.system.users.find()</span><br><span class="line">&gt; use admin</span><br><span class="line">switched to db admin</span><br><span class="line">&gt; db.system.users.find()</span><br><span class="line">&#123; &quot;_id&quot; : &quot;admin.myroot&quot;, &quot;userId&quot; : UUID(&quot;af42bc04-440b-4c98-b698-b8747ef2eb35&quot;), &quot;user&quot; : &quot;myroot&quot;, &quot;db&quot; : &quot;admin&quot;, &quot;credentials&quot; : &#123; &quot;SCRAM-SHA-1&quot; : &#123; &quot;iterationCount&quot; : 10000, &quot;salt&quot; : &quot;PMXRMTfOBzPmiDOW2n7ixQ&#x3D;&#x3D;&quot;, &quot;storedKey&quot; : &quot;U47dQKbHta0N8VwgFa63OAyNkD4&#x3D;&quot;, &quot;serverKey&quot; : &quot;Z3gUl83zPrDEXIsQXa4R4pKmd&#x2F;o&#x3D;&quot; &#125;, &quot;SCRAM-SHA-256&quot; : &#123; &quot;iterationCount&quot; : 15000, &quot;salt&quot; : &quot;2RdbeB73FQ03YvNBv+SHJtEK1LlC9Eh6qUVukg&#x3D;&#x3D;&quot;, &quot;storedKey&quot; : &quot;Vm3L9VlI3VA5oi0JvSz6xPu2aUL72ZFJ4h4v06q1OW4&#x3D;&quot;, &quot;serverKey&quot; : &quot;UthkpRSLcRVR4QdCWoYCR8E6GStmwLCjU3qbsbgCPio&#x3D;&quot; &#125; &#125;, &quot;roles&quot; : [ &#123; &quot;role&quot; : &quot;root&quot;, &quot;db&quot; : &quot;admin&quot; &#125; ] &#125;</span><br><span class="line">&#123; &quot;_id&quot; : &quot;admin.myadmin&quot;, &quot;userId&quot; : UUID(&quot;4b6debce-f09f-40aa-9fa4-50f5e7cddfa7&quot;), &quot;user&quot; : &quot;myadmin&quot;, &quot;db&quot; : &quot;admin&quot;, &quot;credentials&quot; : &#123; &quot;SCRAM-SHA-1&quot; : &#123; &quot;iterationCount&quot; : 10000, &quot;salt&quot; : &quot;QyYlA5p5mdKRXISZTngtGg&#x3D;&#x3D;&quot;, &quot;storedKey&quot; : &quot;3tSb6SBwjLA69jpQPDYqb8DqBB0&#x3D;&quot;, &quot;serverKey&quot; : &quot;Mifh7bR3Se7VzoHzafRs82&#x2F;Uvdc&#x3D;&quot; &#125;, &quot;SCRAM-SHA-256&quot; : &#123; &quot;iterationCount&quot; : 15000, &quot;salt&quot; : &quot;+qAQPxEVcz4vcavB93FX3br0F9MSGXjyaznaOw&#x3D;&#x3D;&quot;, &quot;storedKey&quot; : &quot;m&#x2F;yYCOpEw4bBpOu1fzgsdXKcLx+zKjkl9LmpaLVxh3s&#x3D;&quot;, &quot;serverKey&quot; : &quot;ERS886LGU&#x2F;f93ckkg21hVm3y&#x2F;xTTw86&#x2F;xW3P+jGLTFw&#x3D;&quot; &#125; &#125;, &quot;roles&quot; : [ &#123; &quot;role&quot; : &quot;userAdminAnyDatabase&quot;, &quot;db&quot; : &quot;admin&quot; &#125; ] &#125;</span><br><span class="line">&#123; &quot;_id&quot; : &quot;articledb.bobo&quot;, &quot;userId&quot; : UUID(&quot;66ec03fe-7f8e-4ecd-a6a2-60343a1ae84b&quot;), &quot;user&quot; : &quot;bobo&quot;, &quot;db&quot; : &quot;articledb&quot;, &quot;credentials&quot; : &#123; &quot;SCRAM-SHA-1&quot; : &#123; &quot;iterationCount&quot; : 10000, &quot;salt&quot; : &quot;B9fjNQlbPI332LhJJKretQ&#x3D;&#x3D;&quot;, &quot;storedKey&quot; : &quot;eFR87+A8h8vUtWg5wcQyUVYSPSw&#x3D;&quot;, &quot;serverKey&quot; : &quot;x9Z+pCKzbUNB1MzJ&#x2F;UjjNctbkFE&#x3D;&quot; &#125;, &quot;SCRAM-SHA-256&quot; : &#123; &quot;iterationCount&quot; : 15000, &quot;salt&quot; : &quot;3B1S0jfgwiA+pSZAm354DrsQk3W7tyanZkiSvg&#x3D;&#x3D;&quot;, &quot;storedKey&quot; : &quot;V18hBRnI6J+tbn3eBtmNRdjJuoJ0dUxGuQ0709hoTck&#x3D;&quot;, &quot;serverKey&quot; : &quot;rf971ZTTvTUJXn+46OFsTSDEdU7mJle+uqKnrVeOyaI&#x3D;&quot; &#125; &#125;, &quot;roles&quot; : [ &#123; &quot;role&quot; : &quot;readWrite&quot;, &quot;db&quot; : &quot;articledb&quot; &#125; ] &#125;</span><br></pre></td></tr></table></figure></td>
+<td></td>
+</tr>
+<tr>
+<td>#### 账号相关命令</td>
+<td></td>
+</tr>
+<tr>
+<td>命令</td>
+<td>描述</td>
+</tr>
+<tr>
+<td>————————————————————————————–</td>
+<td>———————————————————————————————————–</td>
+</tr>
+<tr>
+<td>db.system.users.find()</td>
+<td>查看已经创建了的用户的情况</td>
+</tr>
+<tr>
+<td>db.dropUser(“myadmin”)</td>
+<td>删除用户</td>
+</tr>
+<tr>
+<td>db.changeUserPassword(“myroot”, “123456”)</td>
+<td>修改密码</td>
+</tr>
+<tr>
+<td>db.createUser({user:”myroot”,pwd:”123456”,roles:[{role:”root”,db:”admin”}]})</td>
+<td>创建用户</td>
+</tr>
+<tr>
+<td>mongo –host 127.0.0.1 –port 27017 –authenticationDatabase admin -u myroot -p 123456</td>
+<td>-u ：用户名 -p ：密码, –authenticationDatabase ：指定连接到哪个库。当登录是指定用户名密码时，必须指定对应的数据库！</td>
+</tr>
+</tbody></table>
+</li>
+</ul>
+<h2 id="副本集环境"><a href="#副本集环境" class="headerlink" title="副本集环境"></a>副本集环境</h2><p>副本集的认证需要两种，一种是副本集节点之间的安全认证，另外一种是客户端连接到副本集的安全认证。<br>1）副本集和共享集群的各个节点成员之间使用内部身份验证，可以使用密钥文件或x.509证书。密钥文件比较简单，本文使用密钥文件，官方推荐如果是测试环境可以使用密钥文件，但是正式环境，官方推荐x.509证书。原理就是，集群中每一个实例彼此连接的时候都检验彼此使用的证书的内容是否相同。只有证书相同的实例彼此才可以访问<br>2）使用客户端连接到mongodb集群时，开启访问授权。对于集群外部的访问。如通过可视化客户端，或者通过代码连接的时候，需要开启授权<br>在keyfile身份验证中，副本集中的每个mongod实例都使用keyfile的内容作为共享密码，只有具有正确密钥文件的mongod或者mongos实例可以连接到副本集。密钥文件的内容必须在6到1024个字符之间，并且在unix/linux系统中文件所有者必须有对文件至少有读的权限</p>
+<h3 id="关闭已开启的副本集服务"><a href="#关闭已开启的副本集服务" class="headerlink" title="关闭已开启的副本集服务"></a>关闭已开启的副本集服务</h3><p>1）停止集群服务</p>
+<ul>
+<li>快速关闭方法<br>杀进程，依次杀死仲裁者、副本节点、主节点，直到所有成员都离线。建议主节点最后kill，以避免潜在的回滚。杀完要检查一下，避免有的没有杀掉。<br>如果一旦是因为数据损坏，则需要进行如下操作<br>1&gt;删除lock文件<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">rm -f &#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27017&#x2F;data&#x2F;db&#x2F;*.lock \</span><br><span class="line">&#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27018&#x2F;data&#x2F;db&#x2F;*.lock \</span><br><span class="line">&#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27019&#x2F;data&#x2F;db&#x2F;mongod.lock \</span><br></pre></td></tr></table></figure>
+2&gt;依次修复数据<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;usr&#x2F;local&#x2F;mongodb&#x2F;bin&#x2F;mongod --repair --dbpath&#x3D;&#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27017&#x2F;data&#x2F;db</span><br><span class="line">&#x2F;usr&#x2F;local&#x2F;mongodb&#x2F;bin&#x2F;mongod --repair --dbpath&#x3D;&#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27018&#x2F;data&#x2F;db</span><br><span class="line">&#x2F;usr&#x2F;local&#x2F;mongodb&#x2F;bin&#x2F;mongod --repair --dbpath&#x3D;&#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27019&#x2F;data&#x2F;db</span><br></pre></td></tr></table></figure></li>
+<li>标准的关闭方法<br>通过mongo客户端中的shutdownServer命令来依次关闭各个服务，关闭副本集中的服务，建议依次关闭仲裁节点、副本节点、主节点。主要的操作步骤参考如下：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;客户端登录服务，注意，这里通过localhost登录，如果需要远程登录，必须先登录认证才行。</span><br><span class="line">mongo --port 27017</span><br><span class="line">&#x2F;&#x2F;告知副本集说本机要下线</span><br><span class="line">rs.stepDown()</span><br><span class="line">&#x2F;&#x2F;#切换到admin库</span><br><span class="line">use admin</span><br><span class="line">&#x2F;&#x2F;关闭服务</span><br><span class="line">db.shutdownServer()</span><br></pre></td></tr></table></figure>
+2）通过主节点添加一个管理员帐号<br>只需要在主节点上添加用户，副本集会自动同步。操作和单机类似<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">use admin</span><br><span class="line">db.createUser(&#123;user:&quot;myroot&quot;,pwd:&quot;123456&quot;,roles:[&quot;root&quot;]&#125;)</span><br></pre></td></tr></table></figure>
+3）创建副本集认证的key文件（新增的步骤）<br>第一步：生成一个key文件到当前文件夹中。<br>可以使用任何方法生成密钥文件。例如，以下操作使用openssl生成密码文件，然后使用chmod来更改文件权限，仅为文件所有者提供读取权限<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@bobohost ~]# openssl rand -base64 90 -out .&#x2F;mongo.keyfile</span><br><span class="line">[root@bobohost ~]# chmod 400 .&#x2F;mongo.keyfile</span><br><span class="line">[root@bobohost ~]# ll mongo.keyfile</span><br><span class="line">-r--------. 1 root root 122 8月 14 14:23 mongo.keyfile</span><br></pre></td></tr></table></figure>
+所有副本集节点都必须要用同一份keyfile，一般是在一台机器上生成，然后拷贝到其他机器上，且必须有读的权限，否则将来会报错<br>一定要保证密钥文件一致，文件位置随便。但是为了方便查找，建议每台机器都放到一个固定的位置，都放到和配置文件一起的目录中。<br>第二步将该文件分别拷贝到多个目录中<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@bobohost ~]# cp mongo.keyfile &#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27017</span><br><span class="line">[root@bobohost ~]# cp mongo.keyfile &#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27018</span><br><span class="line">[root@bobohost ~]# cp mongo.keyfile &#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27019</span><br></pre></td></tr></table></figure>
+4）修改配置文件指定keyfile<br>分别编辑几个服务的mongod.conf文件，添加相关内容：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">security:</span><br><span class="line">#KeyFile鉴权文件</span><br><span class="line">keyFile: &#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27017&#x2F;mongo.keyfile</span><br><span class="line">#开启认证方式运行</span><br><span class="line">authorization: enabled</span><br></pre></td></tr></table></figure>
+5）重新启动副本集<br>如果副本集是开启状态，则先分别关闭关闭复本集中的每个mongod，从次节点开始。直到副本集的所有成员都离线，包括任何仲裁者。<strong>主节点必须是最后一个成员关闭</strong>以避免潜在的回滚。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#通过进程编号关闭三个节点</span><br><span class="line">kill -2 54410 54361 54257</span><br><span class="line">mongod -f &#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27017&#x2F;mongod.conf</span><br><span class="line">mongod -f &#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27018&#x2F;mongod.conf</span><br><span class="line">mongod -f &#x2F;mongodb&#x2F;replica_sets&#x2F;myrs_27019&#x2F;mongod.conf</span><br></pre></td></tr></table></figure>
+<h2 id="分片集群环境"><a href="#分片集群环境" class="headerlink" title="分片集群环境"></a>分片集群环境</h2>与副本集类似，只不过内部安全认证是在分片集群的所有机器上共享证书，所以同一个证书需要分配到所有机器上，其他操作参照副本集。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/03/07/mongodb%E9%9B%86%E7%BE%A4/" rel="prev" title="mongodb集群">
+      <i class="fa fa-chevron-left"></i> mongodb集群
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#安全认证"><span class="nav-number">1.</span> <span class="nav-text">安全认证</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#MongoDB的用户和角色权限简介"><span class="nav-number">1.1.</span> <span class="nav-text">MongoDB的用户和角色权限简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#启用访问控制"><span class="nav-number">1.1.1.</span> <span class="nav-text">启用访问控制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#角色"><span class="nav-number">1.1.2.</span> <span class="nav-text">角色</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#权限"><span class="nav-number">1.1.3.</span> <span class="nav-text">权限</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#查询命令"><span class="nav-number">1.1.3.1.</span> <span class="nav-text">查询命令</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#常用的内置角色"><span class="nav-number">1.1.3.2.</span> <span class="nav-text">常用的内置角色</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#角色说明"><span class="nav-number">1.1.3.3.</span> <span class="nav-text">角色说明</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#副本集环境"><span class="nav-number">1.2.</span> <span class="nav-text">副本集环境</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#关闭已开启的副本集服务"><span class="nav-number">1.2.1.</span> <span class="nav-text">关闭已开启的副本集服务</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分片集群环境"><span class="nav-number">1.3.</span> <span class="nav-text">分片集群环境</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Haiyefeng"
+      src="/images/a.jpg">
+  <p class="site-author-name" itemprop="name">Haiyefeng</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Haiyefeng</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
